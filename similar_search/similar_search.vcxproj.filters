@@ -38,13 +38,10 @@
     <ClInclude Include="KD_tree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="R_segment_tree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C_segment_tree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="M_tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R_tree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

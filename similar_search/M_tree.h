@@ -1,323 +1,315 @@
 #ifndef _MTREE_H
 #define _MTREE_H
 
-#include <iostream>     
+#include <iostream> 
 #include <algorithm>
-#include <DFD.h>
-#include <Init.h>
+#include <fstream>
 #include <vector>
+#include <BLtoDist.h>
 
 using namespace std;
 
-// better struct
-// each node store a main object.Tid
-// *****use the best first search to accelerate DFD*****
+namespace Mtree {
+	const int Capacity = 20;
+	
+	struct Node;
 
-struct Object_mtree {
-	int Tid;
-	double dis_p, radius;
-	int son_node;
-};
+	struct Entry {
+		int Tid,son_node; // Tid: feature value of the object, son_node: offset from the start address
+		double dis_p, radius; // dis_p: distance with parent object, radius: cover radius
+	};
 
-struct node_mtree {
-	vector<Object_mtree> objects;
-	bool leaf, root;
-	int ID, parent_object, parent_node;	// ID in M_tree
-};
+	struct Node {
+		Entry entries[Capacity]; 
+		int entry_num, center, ID, PID; // entry number in the node, center is the center Entry, ID: the tree ID of the node, PID: parent ID
+		bool leaf, root; // leaf and root label
+	};
 
-const int Capacity_mtree = 20;
-int nodenum_mtree;	//number of mtree nodes
-int root_mtree;
-vector<node_mtree> M_tree;
-vector<Object_mtree> N1, N2, NN;
-vector<int> results, N_in;
-Object_mtree O_n;
-node_mtree N_temp;
+	vector<Node> Tree;
+	vector<Entry> NN, N1, N2;
+	vector<int> Nin, RQans;
+	int root;
 
-double Get_distance(int a, int b) {
-	return double_DFD(&(All_Data[a].Points), &(All_Data[b].Points));
-}
+	double GetDistance(Entry& A, Entry& B) { // distance
+		double dfd = double_DFD(All_Query[A.Tid].Points, All_Data[B.Tid].Points);
+		return dfd;
+	}
 
-double Getdisp_mtree(int Oid, int Np, int Op) {
-	if ((Np == -1) || (Op == -1)) return 0;
-	return Get_distance(Oid, M_tree[Np].objects[Op].Tid);
-}
+	void AddAllEntry(Node& CurNode) {
+		if (!CurNode.leaf) {
+			for (int i = 0; i < CurNode.entry_num; i++) {
+				AddAllEntry(Tree[CurNode.entries[i].son_node]);
+			}
+		}
+		else {
+			for (int i = 0; i < CurNode.entry_num; i++) {
+				RQans.push_back(CurNode.entries[i].Tid);
+			}
+		}
+	}
 
-void CreateRoot_mtree() {
-	M_tree.clear();	//	clear the mtree
-	node_mtree tempnode;
-	tempnode.objects.clear();
-	tempnode.parent_node = -1;
-	tempnode.parent_object = -1;
-	tempnode.leaf = true;
-	tempnode.root = true;
-	tempnode.ID = 0;
-	nodenum_mtree = 0; root_mtree = 0;
-	M_tree.push_back(tempnode);
-	return;
-}
+	void RangeQueryMemory(Node& CurNode, Entry& Q, double DisPQ) {
+		/*double DisPQ;
+		if (!CurNode.root) {
+			DisPQ = GetDistance(Q, CurNode.entries[CurNode.center]);
+		}
+		else DisPQ = 0;*/
 
-void CreateNewNode_mtree(node_mtree* N, int ID, bool leaf, bool root, int parent_object, int parent_node) {
-	(*N).objects.clear();
-	(*N).parent_node = parent_node;
-	(*N).parent_object = parent_object;
-	(*N).leaf = leaf;
-	(*N).root = root;
-	(*N).ID = ID;
-	return;
-}
-
-void RangeQuery_mtree(int N, int Q_Tid, double search_r) {
-	int Np = M_tree[N].parent_node;
-	int Op = M_tree[N].parent_object;
-	double dpq;
-	if (!M_tree[N].root) {
-		dpq= Get_distance(M_tree[Np].objects[Op].Tid, Q_Tid);
-	} 
-	else dpq = 0;
-
-	if (!M_tree[N].leaf) {
-		for (int i = 0; i < M_tree[N].objects.size(); i++) {
-			double dpr = M_tree[N].objects[i].dis_p;
-			if ((abs(dpq - dpr) < search_r + M_tree[N].objects[i].radius) || (M_tree[N].root)) {	// root has no parent, so can not satisfy triangle inequality
-				double dqr = Get_distance(M_tree[N].objects[i].Tid, Q_Tid);
-				if (dqr < search_r + M_tree[N].objects[i].radius) {
-					int son_id = M_tree[N].objects[i].son_node;
-					RangeQuery_mtree(son_id, Q_Tid, search_r);
+		if (!CurNode.leaf) {
+			for (int i = 0; i < CurNode.entry_num; i++) {
+				if (abs(DisPQ - CurNode.entries[i].dis_p) <= (Q.radius + CurNode.entries[i].radius)) {
+					double DisRQ = GetDistance(Q, CurNode.entries[i]);
+					if (DisRQ + CurNode.entries[i].radius <= Q.radius) { // Q include CurNode.entries[i]
+						AddAllEntry(Tree[CurNode.entries[i].son_node]);
+					}
+					else {
+						if (DisRQ <= Q.radius + CurNode.entries[i].radius) {
+							RangeQueryMemory(Tree[CurNode.entries[i].son_node], Q, DisRQ);
+						}
+					}
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < CurNode.entry_num; i++) {
+				if (abs(DisPQ - CurNode.entries[i].dis_p) <= Q.radius) {
+					double DisRQ = GetDistance(Q, CurNode.entries[i]);
+					if (DisRQ <= Q.radius) RQans.push_back(CurNode.entries[i].Tid);
 				}
 			}
 		}
 	}
-	else {
-		for (int i = 0; i < M_tree[N].objects.size(); i++) { 
-			double dpr = M_tree[N].objects[i].dis_p;
-			if ((abs(dpq - dpr) < search_r) || (M_tree[N].root)) { // root has no parent, so can not satisfy triangle inequality
-				double dqr = Get_distance(M_tree[N].objects[i].Tid, Q_Tid);
-				if (dqr < search_r) results.push_back(M_tree[N].objects[i].Tid);
+
+	void CreateEntry(Entry& NewEntry, int Tid, int son_node, double dis_p, double radius) {
+		NewEntry.Tid = Tid;
+		NewEntry.son_node = son_node;
+		NewEntry.dis_p = dis_p;
+		NewEntry.radius = radius;
+		return;
+	}
+
+	void CreateNode(int entry_num, int PID, int center, bool leaf, bool root) {
+		Node* NewNode = new Node;
+		NewNode->entry_num = entry_num;
+		NewNode->PID = PID;
+		NewNode->center = center;
+		NewNode->leaf = leaf;
+		NewNode->root = root;
+		NewNode->ID = Tree.size();
+		Tree.push_back(*NewNode);
+		delete NewNode;
+		return;
+	}
+
+	pair<int, int> Promote(int N) {
+		pair<int, int> temppair;
+		if (Tree[N].root) { // root doesn't have center, select the first two entries;
+			temppair.first = 0; temppair.second = 1;
+			return temppair;
+		}
+		double MaxDis = -1;
+		temppair.first = Tree[N].center;
+		// Find the farthest Entry with center be the Op2
+		for (int i = 0; i < NN.size(); i++) {
+			if (i == Tree[N].center) continue;
+			if (NN[i].dis_p >= MaxDis) {
+				MaxDis = NN[i].dis_p;
+				temppair.second = i;
 			}
 		}
-	}
-	return;
-}
-
-pair<int, int> Promote_mtree(int N) { // M_LB_DIST
-	pair<int, int> temppair;
-
-	if (M_tree[N].root) { // root no parent, select the first two objects
-		temppair.first = M_tree[N].objects[0].Tid;
-		temppair.second = M_tree[N].objects[1].Tid;
 		return temppair;
 	}
 
-	double Maxd = 0; int Maxi = 0;
-	for (int i = 0; i < NN.size(); i++) {
-		if (NN[i].dis_p >= Maxd) {
-			Maxd = NN[i].dis_p; Maxi = i;
-		}
-	}
-
-	temppair.first = M_tree[M_tree[N].parent_node].objects[M_tree[N].parent_object].Tid;
-	temppair.second = NN[Maxi].Tid;
-	return temppair;
-}
-
-void Partition_mtree(int N, int O1, int O2) { // O1 is parent_object.Tid, O2 is promoted Tid
-	N1.clear(); N2.clear();
-	for (int i = 0; i < NN.size(); i++) {
-		int Oid = NN[i].Tid;
-		double d1 = Get_distance(O1, Oid);
-		double d2 = Get_distance(O2, Oid);
-		// then update son_node's parent_objects (if son_node is exist)
-		if (d1 < d2) {	// choose nearest object, N1.size <= capacity
-			NN[i].dis_p = d1;
-			N1.push_back(NN[i]);
-			if (NN[i].son_node>=0) M_tree[NN[i].son_node].parent_object = N1.size() - 1;
-		}
-		else {
-			NN[i].dis_p = d2;
-			N2.push_back(NN[i]);
-			if (NN[i].son_node>=0) M_tree[NN[i].son_node].parent_object = N2.size() - 1;
-		}
-	}	
-}
-
-void ClearNode_mtree(node_mtree* N) {
-	(*N).objects.clear();
-	(*N).parent_node = NULL;
-	(*N).parent_object = NULL;
-	(*N).leaf = false;
-	(*N).root = false;
-	(*N).ID = 0;
-	return;
-}
-
-Object_mtree CreateNewObject_mtree(int Tid, double radius, double dis_p, int son_node) {
-	Object_mtree O;
-	O.Tid = Tid;
-	O.radius = radius;
-	O.dis_p = dis_p;
-	O.son_node = son_node;
-	return O;
-}
-
-void UpdateR_mtree(int N,int O) {//M_tree[N].objects[O] need to be updated. 
-	M_tree[N].objects[O].radius = 0;
-	int N_son = M_tree[N].objects[O].son_node;
-	int pid = M_tree[N].objects[O].Tid;
-	if (M_tree[N_son].leaf) {
-		for (int i = 0; i < M_tree[N_son].objects.size(); i++) {
-			int Oid = M_tree[N_son].objects[i].Tid;
-			//M_tree[N_son].objects[i].dis_p = Get_distance(Oid, pid);
-			M_tree[N].objects[O].radius = max(M_tree[N].objects[O].radius, M_tree[N_son].objects[i].dis_p);
-		}
-	}
-	else {
-		for (int i = 0; i < M_tree[N_son].objects.size(); i++) {
-			int Oid = M_tree[N_son].objects[i].Tid;
-			//M_tree[N_son].objects[i].dis_p = Get_distance(Oid, pid);
-			M_tree[N].objects[O].radius = max(M_tree[N].objects[O].radius, M_tree[N_son].objects[i].dis_p + M_tree[N_son].objects[i].radius);
-		}
-	}
-	return;
-}
-
-void split_mtree(int N, Object_mtree O_n) {
-	NN.clear(); NN.push_back(O_n);	// add new entry O_n to the N's objects
-	for (int i = 0; i < M_tree[N].objects.size(); i++) {
-		NN.push_back(M_tree[N].objects[i]);
-	}
-
-	pair<int, int> O = Promote_mtree(N);	// Promote two entries(Trajectory ID) from NN
-	Partition_mtree(N, O.first, O.second);	// Partition NN into 2 groups, N1 and N2
-	CreateNewNode_mtree(&N_temp, -1, M_tree[N].leaf, M_tree[N].root, -1, M_tree[N].parent_node);	// Create a new node N_temp, N and N_temp are brothers in mtree
-	M_tree[N].objects = N1;
-	N_temp.objects = N2;	// save N1 into N.objects, save N2 into N_temp.objects
-	nodenum_mtree++; N_temp.ID = nodenum_mtree; M_tree.push_back(N_temp);   int N_t = nodenum_mtree;	// add N_temp into mtree as a new node, N_t is the pointer
-	//if not leaf, update objects' son_node in N2 and N1
-	if (!M_tree[N_t].leaf) {
-		for (int i = 0; i < M_tree[N_t].objects.size(); i++) {
-			int son_id = M_tree[N_t].objects[i].son_node;
-			M_tree[son_id].parent_node = N_t;
-		}
-	}
-	if (!M_tree[N].leaf) {
-		for (int i = 0; i < M_tree[N].objects.size(); i++) {
-			int son_id = M_tree[N].objects[i].son_node;
-			M_tree[son_id].parent_node = N;
-		}
-	}
-	Object_mtree O_temp = CreateNewObject_mtree(O.second, 0, 0, N_t);	// Create a new object O_temp, N_t is the subtree
-	
-	// add O_temp to the parent node
-	if (M_tree[N].root) {	// split root of mtree
-		M_tree[N].root = false; M_tree[N_t].root = false;	// modify .root 
-		// create a new root node
-		node_mtree newroot;
-		CreateNewNode_mtree(&newroot, -1, false, true, -1, -1);
-		nodenum_mtree++; root_mtree = nodenum_mtree; newroot.ID = nodenum_mtree;
-		M_tree.push_back(newroot); // add newroot
-
-		// (*N).parent_object is NULL, so create a new object
-		Object_mtree O_1 = CreateNewObject_mtree(O.first, 0, 0, M_tree[N].ID);
-		// add O_1 and O_temp into new root, update parent_object and parent_node
-		M_tree[root_mtree].objects.push_back(O_1);
-		M_tree[N].parent_object = M_tree[root_mtree].objects.size() - 1;
-		M_tree[N].parent_node = root_mtree;
-		M_tree[root_mtree].objects.push_back(O_temp);
-		M_tree[N_t].parent_object = M_tree[root_mtree].objects.size() - 1;
-		M_tree[N_t].parent_node = root_mtree;
-	}
-	else {
-		int Np = M_tree[N].parent_node;
-		if (M_tree[Np].objects.size() < Capacity_mtree) {
-			O_temp.dis_p = Getdisp_mtree(O_temp.Tid, Np, M_tree[N].parent_object);
-			M_tree[Np].objects.push_back(O_temp);
-			M_tree[N_t].parent_object = M_tree[Np].objects.size() - 1;
-			M_tree[N_t].parent_node = Np;
-		}
-		else split_mtree(Np, O_temp);
-	}
-
-	// N.parent_object as O1, update (O1,O2).raidus and dis_p in (N1,N2);
-	int Np = M_tree[N].parent_node;
-	UpdateR_mtree(Np, M_tree[N].parent_object);
-	UpdateR_mtree(Np, M_tree[N_t].parent_object);
-	return;
-}
-
-void GetNin_mtree(int N, Object_mtree* O_n) {
-	N_in.clear();
-	for (int i = 0; i < M_tree[N].objects.size(); i++) { // Get N_in :dfd(Tra_id,Tid_r)< radius_r
-		int Tid = M_tree[N].objects[i].Tid;
-		if (Get_distance(Tid, (*O_n).Tid) < M_tree[N].objects[i].radius) N_in.push_back(i);
-	}
-	return;
-}
-
-int GetMin_fromNin_mtree(int N, Object_mtree* O_n) {
-	double Mind = INFINITY; int Mini = -1;
-	for (int i = 0; i < N_in.size(); i++) {
-		int Oid = M_tree[N].objects[N_in[i]].Tid;
-		double dis_temp = Get_distance(Oid, (*O_n).Tid);
-		if (dis_temp < Mind) {
-			Mind = dis_temp; Mini = N_in[i];
-		}
-	}
-	return Mini;
-}
-
-int GetMin_fromN_mtree(int N, Object_mtree* O_n) {
-	double Mind = INFINITY; int Mini = -1;
-	for (int i = 0; i < M_tree[N].objects.size(); i++) {
-		int Oid = M_tree[N].objects[i].Tid;
-		double dis_temp = Get_distance(Oid, (*O_n).Tid) - M_tree[N].objects[i].radius;
-		if (dis_temp < Mind) {
-			Mind = dis_temp; Mini = i;
-		}
-	}
-	// update Oid.radius
-	M_tree[N].objects[Mini].radius = Get_distance(M_tree[N].objects[Mini].Tid, (*O_n).Tid);
-	return Mini;
-}
-
-void insert_mtree(int N, Object_mtree* O_n) {
-	if (!M_tree[N].leaf) { // Mtree_id is not a leaf node store routing objects	
-		GetNin_mtree(N, O_n);
-		int O_r = -1;
-		if (!N_in.empty()) {
-			O_r = GetMin_fromNin_mtree(N, O_n);// choose node Oid, min(d(Tra_id,Tid_r))
-		}
-		else {
-			O_r = GetMin_fromN_mtree(N, O_n);  // N_in is empty, choose node Oid, min(d(Tra_id,Tid_r)-radius_r)
-		}
-		insert_mtree(M_tree[N].objects[O_r].son_node, O_n);
-	}
-	else { // node_is is a leaf node, store entries
-		if (M_tree[N].objects.size() < Capacity_mtree) { // not full
-			(*O_n).dis_p = Getdisp_mtree((*O_n).Tid, M_tree[N].parent_node, M_tree[N].parent_object);//update O_n.dis_p
-			M_tree[N].objects.push_back(*O_n);
-			if (!M_tree[N].root) {
-				int Np = M_tree[N].parent_node;
-				UpdateR_mtree(Np, M_tree[N].parent_object);
+	pair<int, int> Partition(int Op1, int Op2) {
+		pair<int, int> temppair; // store new center entries of two node 
+		N1.clear(); N2.clear();
+		for (int i = 0; i < NN.size(); i++) {
+			double d1 = GetDistance(NN[i], NN[Op1]);
+			double d2 = GetDistance(NN[i], NN[Op2]);
+			if (((d1 < d2) || (i == Op1)) && (i != Op2)) { // NN[i] is closer to Op1, op2 cannot be in the N1
+				NN[i].dis_p = d1; // update dis_p
+				N1.push_back(NN[i]);
+				if (i == Op1) temppair.first = N1.size() - 1;
+			}
+			else {
+				NN[i].dis_p = d2;
+				N2.push_back(NN[i]);
+				if (i == Op2) temppair.second = N2.size() - 1;
 			}
 		}
-		else { // if this node larger than capacity, then spilt it 
-			split_mtree(N,*O_n);
+		return temppair;
+	}
+
+	void UpdateRadius(int N) {
+		if (Tree[N].root) return; // root need not to update radius
+		int PID = Tree[N].PID;
+		for (int i = 0; i < Tree[PID].entry_num; i++) {
+			if (Tree[N].ID == Tree[PID].entries[i].son_node) {
+				Tree[PID].entries[i].radius = 0;
+				if (Tree[N].leaf) {
+					for (int j = 0; j < Tree[N].entry_num; j++) {
+						Tree[PID].entries[i].radius = max(Tree[PID].entries[i].radius, Tree[N].entries[j].dis_p);
+					}
+				}
+				else {
+					for (int j = 0; j < Tree[N].entry_num; j++) {
+						Tree[PID].entries[i].radius = max(Tree[PID].entries[i].radius, Tree[N].entries[j].dis_p + Tree[N].entries[j].radius);
+					}
+				}
+				return;
+			}
 		}
 	}
-	return;
+
+	void Split(int N, Entry& CurEntry) {
+		NN.clear(); 
+		// let NN= CurNode.entries + CurEntry; 
+		for (int i = 0; i < Tree[N].entry_num; i++) {
+			NN.push_back(Tree[N].entries[i]);
+		}
+		NN.push_back(CurEntry); // CurEntry is the last element
+		
+		// let CurNode's center entry always be the Op.first, and promote Op.second;
+		pair<int,int> Op = Promote(N);
+		Op = Partition(Op.first, Op.second); // Op is the new center of two nodes
+		
+		// update CurNode, store N1
+		Tree[N].entry_num = N1.size();
+		Tree[N].center = Op.first;
+		for (int i = 0; i < N1.size(); i++) {
+			Tree[N].entries[i] = N1[i];
+		}
+		UpdateRadius(N);// update radius!!!
+
+		// Create a new Node to store N2
+		CreateNode(N2.size(), Tree[N].PID, Op.second, Tree[N].leaf, false); // NewNode cant be root
+		int NewNode = Tree.back().ID;
+		for (int i = 0; i < N2.size(); i++) {
+			Tree[NewNode].entries[i] = N2[i];
+			if (!Tree[NewNode].leaf) {
+				Tree[Tree[NewNode].entries[i].son_node].PID = Tree[NewNode].ID;// update son_node's parent_node!!!!
+			}
+		}
+		
+		// Create a new Entry2 to be the NewNode's parent Entry
+		Entry Entry2;
+		CreateEntry(Entry2, N2[Op.second].Tid, Tree[NewNode].ID, 0, 0);
+		// update Entry2's radius
+		for (int i = 0; i < Tree[NewNode].entry_num; i++) {
+			if (Tree[NewNode].leaf) {
+				Entry2.radius = max(Entry2.radius, Tree[NewNode].entries[i].dis_p);
+			}
+			else Entry2.radius = max(Entry2.radius, Tree[NewNode].entries[i].dis_p + Tree[NewNode].entries[i].radius);
+		}
+
+		if (Tree[N].root) {
+			CreateNode(2, -1, -1, false, true);
+			root = Tree.size() - 1; Tree[N].root = false; // update root status
+			Entry Entry1; // Create a new Entry1 && Entries in root don't have dis_p
+			CreateEntry(Entry1, N1[Op.first].Tid, Tree[N].ID, 0, 0);
+			Tree[root].entries[0] = Entry1; Tree[N].PID = Tree[root].ID; UpdateRadius(N);
+			Tree[root].entries[1] = Entry2; Tree[NewNode].PID = Tree[root].ID; UpdateRadius(NewNode);
+		}
+		else {
+			int PID = Tree[N].PID;
+			if (!Tree[PID].root) Entry2.dis_p = GetDistance(Tree[PID].entries[Tree[PID].center], Entry2);
+			if (Tree[PID].entry_num < Capacity) {
+				Tree[PID].entries[Tree[PID].entry_num++] = Entry2; UpdateRadius(NewNode);
+			}
+			else Split(PID, Entry2);
+		}
+
+		return;
+	}
+
+	void Insert(int N, Entry& CurEntry) {
+		if (!Tree[N].leaf) {
+			double* Dis = new double[Capacity]; // get distances with all Or and On
+			for (int i = 0; i < Tree[N].entry_num; i++) {
+				Dis[i] = GetDistance(Tree[N].entries[i], CurEntry);
+			}
+			// all element Or in Nin: d(Or,On)<=Or.radius
+			Nin.clear();
+			for (int i = 0; i < Tree[N].entry_num; i++) {
+				int OrID = Tree[N].entries[i].Tid;
+				if (Dis[i] < Tree[N].entries[i].radius) Nin.push_back(i);
+			}
+
+			int MinEntry = -1; double MinDis = INFINITE;
+			if (!Nin.empty()) { // d(Or, On) is minimum
+				for (int i = 0; i < Nin.size(); i++) {
+					if (MinDis >= Dis[Nin[i]]) {
+						MinEntry = Nin[i];
+						MinDis = Dis[Nin[i]];
+					}
+				}
+			}
+			else { // d(Or,On)-r(Or) is minimum
+				for (int i = 0; i < Tree[N].entry_num; i++) {
+					if (MinDis >= Dis[i]) {
+						MinEntry = i;
+						MinDis = Dis[i];
+					}
+				}
+			}
+
+			CurEntry.dis_p = Dis[MinEntry]; // update dis_p
+			delete[] Dis;
+			Insert(Tree[N].entries[MinEntry].son_node, CurEntry);
+			UpdateRadius(N);
+		}
+		else {
+			if (Tree[N].entry_num < Capacity) {
+				Tree[N].entries[Tree[N].entry_num++] = CurEntry;
+				UpdateRadius(N);
+			}
+			else Split(N, CurEntry);
+		}
+	}
+
+	void WriteToDisk(const char* filename) {
+		fstream MTfile(filename, ios::out|ios::binary);
+		MTfile.write((char *)&root, sizeof(int));
+		for (int i = 0; i < Tree.size(); i++) {
+			char* NewNode = reinterpret_cast<char *>(&Tree[i]);
+			MTfile.write(NewNode, sizeof(Node));
+		}
+		MTfile.close();
+		return;
+	}
+
+	void ReadFromDisk(const char* filename) {
+		Tree.clear();
+		fstream MTfile(filename, ios::in | ios::binary);
+		MTfile.read((char*)&root, sizeof(int));
+		int i = 0;
+		while (!MTfile.eof()) {
+			Node* NewNode = new Node;
+			MTfile.read((char *)NewNode, sizeof(Node));
+			Tree.push_back(*NewNode);
+			i++;
+		}
+		cout << "read size: " << i << endl;
+		MTfile.close();
+		return;
+	}
+
+	void Build(const char* filename, int Datasize) { // a building example //char* filename
+
+		Tree.clear();
+		CreateNode(0, -1, -1, true, true); // create root;
+		root = Tree.back().ID;
+		for (int i = 0; i < Datasize; i++) {
+			Entry NewEntry;
+			CreateEntry(NewEntry, i, -1, 0, 0);
+			Insert(root, NewEntry);
+		}
+		WriteToDisk(filename);
+		cout << "Mtree root: " << root << endl;
+		cout << "Mtree size: " << Tree.size() << endl;
+	}
+
 }
 
-void build_mtree() {
-	CreateRoot_mtree();	// create the root node
-	for (int i = 0; i < All_Data.size(); i++) {
-	//for (int i = 0; i < 30; i++) {
-		O_n.Tid = i; O_n.dis_p = 0; O_n.radius = 0; O_n.son_node = -1;
-		cout << i << endl;
-		//if (i == 10) system("pause");
-		insert_mtree(root_mtree,&O_n);
-	}
-	cout << "M_tree build finish!" << endl;
-	return;
-}
+
 #endif

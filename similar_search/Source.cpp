@@ -8,12 +8,11 @@
 #include <BLtoDist.h>
 #include <Init.h>
 #include <KD_tree.h>
-//#include <R_segment_tree.h>
-//#include <C_segment_tree.h>
 #include <mytime.h>
 #include <dfd.h>
 #include <similarity.h>
 #include <M_tree.h>
+#include <R_tree.h>
 
 using namespace std;
 
@@ -25,7 +24,7 @@ int main(int argc, char **argv) {
 		init(argv[1]);
 		
 		fout << "query&data files= 000.." << query_number << endl;
-		fout << "query&data size= " << All_Query.size() << endl;
+		fout << "TestNumber= " << All_Query.size() << endl;
 		fout << "epsilon= " << epsilon << endl;
 		//init_KD();
 		out_time("Init ");
@@ -37,41 +36,45 @@ int main(int argc, char **argv) {
 
 			out_time("brute force: ");
 		}*/
-		/*{
+
+		{
 			init_time();
 
 			similarity_search_baseline();
 
 			out_time("baseline: ");
-		}*/
+		}
 
-		/*{
-			init_time();
-			build_mtree();
-			out_time("Mtree initialization time: ");
+		{
 			init_time();
 			similarity_search_mtree();
 			out_time("mtree: ");
-		}*/
-
-		
+		}
 
 		/*{
+			init_time();
+			similarity_search_rtree();
+			out_time("rtree: ");
+		}*/
+
+		/*{
+			init_time();
+			similarity_search_rtree();
+			out_time("rtree: ");
+		}*/
+
+		{
+			init_time();
+			init_KD();
+			out_time("init KD: ");
+
 			init_time();
 
 			similarity_search_triangle();
 
 			out_time("triangle: ");
-		}*/
-		
-		{
-		init_time();
-
-		Get_exact_DFD();
-
-		out_time("All pairs exact DFD: ");
 		}
-	
+		
 
 	/*{
 		epsilon = 0.05;
@@ -94,8 +97,8 @@ int main(int argc, char **argv) {
 		for (int i = 0; i < All_Query.size(); i++) {
 			answer.clear();
 			Start_set.clear(); End_set.clear(); Intersect_set.clear();
-			Range_KDsearch(&Start_KD, &Start_set, All_Query[i].Points[0].latitude, All_Query[i].Points[0].longitude, root_Start);
-			Range_KDsearch(&End_KD, &End_set, All_Query[i].Points.back().latitude, All_Query[i].Points.back().longitude, root_End);
+			Range_KDsearch(Start_KD, Start_set, All_Query[i].Points[0].latitude, All_Query[i].Points[0].longitude, root_Start);
+			Range_KDsearch(End_KD, End_set, All_Query[i].Points.back().latitude, All_Query[i].Points.back().longitude, root_End);
 
 			set_intersection(Start_set.begin(), Start_set.end(), End_set.begin(), End_set.end(), inserter(Intersect_set, Intersect_set.end()));
 			cnt = cnt + Intersect_set.size();

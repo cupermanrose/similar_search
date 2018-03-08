@@ -4,8 +4,9 @@
 using namespace std;
 
 const int MaxLen = 100000;
-const int data_number = 50;
-const int query_number = 50;
+const int data_number = 181;
+const int query_number = 181;
+const int TestNumber = 100;
 const bool addpoints = false;
 fstream fout("G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\test.txt", ios::out);
 
@@ -62,6 +63,7 @@ void init(string preffix) {
 		FindAll(index.c_str(), &filepath); // find all files in this folder
 
 		for (int j = 0; j < filepath.size(); j++) { // traverse all files in this folder
+			if (All_Query.size() == TestNumber) break;
 			fstream fin(filepath[j].c_str(), ios::in);
 			if (!fin.is_open()) { fin.close(); continue; } // ignore invalid files
 			Trajectory tempTra; tempTra.Points.clear(); //generate a trajectory
@@ -71,7 +73,7 @@ void init(string preffix) {
 			while (!fin.eof()) {
 				double latitude, longitude; char ch;
 				fin >> latitude >> ch >> longitude; fin.getline(temp, 256);// read b&l, and ignore the rest of a line
-				toRad(&tempP, latitude, longitude);
+				toRad(tempP, latitude, longitude);
 				tempTra.Points.push_back(tempP);
 			}
 			fin.close();
@@ -92,7 +94,7 @@ void init(string preffix) {
 						for (int kk = 1; kk < addnumber; kk++) {
 							platitude = platitude + latitude_offset;
 							plongitude = plongitude + longitude_offset;
-							toRad(&tempP, platitude, plongitude);
+							toRad(tempP, platitude, plongitude);
 							tempTra_add.Points.push_back(tempP);
 						}
 					}
@@ -114,6 +116,7 @@ void init(string preffix) {
 		FindAll(index.c_str(), &filepath); // find all files in this folder
 
 		for (int j = 0; j < filepath.size(); j++) { // traverse all files in this folder
+			if (All_Data.size() == TestNumber) break;
 			fstream fin(filepath[j].c_str(), ios::in);
 			if (!fin.is_open()) { fin.close(); continue; } // ignore invalid files
 			Trajectory tempTra; tempTra.Points.clear(); //generate a trajectory
@@ -124,7 +127,7 @@ void init(string preffix) {
 				double latitude, longitude; char ch;
 				fin >> latitude >> ch >> longitude; fin.getline(temp, 256);// read b&l, and ignore the rest of a line
 
-				toRad(&tempP, latitude, longitude);
+				toRad(tempP, latitude, longitude);
 				tempTra.Points.push_back(tempP);
 			}
 			fin.close();
@@ -145,7 +148,7 @@ void init(string preffix) {
 						for (int kk = 1; kk < addnumber; kk++) {
 							platitude = platitude + latitude_offset;
 							plongitude = plongitude + longitude_offset;
-							toRad(&tempP, platitude, plongitude);
+							toRad(tempP, platitude, plongitude);
 							tempTra_add.Points.push_back(tempP);
 						}
 					}

@@ -13,17 +13,17 @@ struct Point {
 	double latitude, longitude;
 };
 
-void toRad(Point* p, double latitude, double longitude) {
-	(*p).latitude = latitude;
-	(*p).longitude = longitude;
+void toRad(Point& p, double latitude, double longitude) {
+	p.latitude = latitude;
+	p.longitude = longitude;
 	/*latitude = toRadians(latitude);
 	longitude = toRadians(longitude);
-	(*p).x = cos(latitude)*cos(longitude);
-	(*p).y = cos(latitude)*sin(longitude);
-	(*p).z = sin(latitude);*/
+	p.x = cos(latitude)*cos(longitude);
+	p.y = cos(latitude)*sin(longitude);
+	p.z = sin(latitude);*/
 }
 
-bool bool_dist(Point* i, Point* j) {
+bool bool_dist(Point& i, Point& j) {
 	//double c = (*i).x * (*j).x + (*i).y * (*j).y + (*i).z * (*j).z;
 	//if (c > 1.0) c = c - eps;
 	//if (c < -1.0) c = c + eps;
@@ -31,18 +31,22 @@ bool bool_dist(Point* i, Point* j) {
 	////return a*R; //km
 	//if ((a*R) > epsilon) return 0;
 	//return 1;
-	double c = ((*i).latitude - (*j).latitude)*((*i).latitude - (*j).latitude) + ((*i).longitude - (*j).longitude)*((*i).longitude - (*j).longitude);
+	double lat = i.latitude - j.latitude;
+	double lon = i.longitude - j.longitude;
+	double c = lat*lat + lon*lon;
 	if (sqrt(c) > epsilon) return 0;
 	return 1;
 }
 
-double double_dist(Point* i, Point* j) {
+double double_dist(Point& i, Point& j) {
 	//double c = i.x*j.x + i.y*j.y + i.z*j.z;
 	//if (c > 1.0) c = c - eps;
 	//if (c < -1.0)c = c + eps;
 	//double a = acos(c);
 	//return a*R; //km
-	double c = ((*i).latitude - (*j).latitude)*((*i).latitude - (*j).latitude) + ((*i).longitude - (*j).longitude)*((*i).longitude - (*j).longitude);
+	double lat = i.latitude - j.latitude;
+	double lon = i.longitude - j.longitude;
+	double c = lat*lat + lon*lon; 
 	return sqrt(c);
 }
 

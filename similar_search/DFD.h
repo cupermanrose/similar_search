@@ -20,8 +20,8 @@ int f_near[MaxLen]; // the nearest 1 on the right;
 //};
 //unordered_set<pair<int, int>, pairhash> rep;
 
-double LB_cell(vector<Point>* A, vector<Point>* B) {
-	return (max(double_dist(&((*A)[0]), &((*B)[0])), double_dist(&((*A)[(*A).size() - 1]), &((*B)[(*B).size() - 1]))));
+double LB_cell(vector<Point>& A, vector<Point>& B) {
+	return (max(double_dist(A[0], B[0]), double_dist(A[A.size() - 1], B[B.size() - 1])));
 }
 
 //double LB_cross(vector<Point>* A, vector<Point>* B) {
@@ -104,12 +104,12 @@ double LB_cell(vector<Point>* A, vector<Point>* B) {
 //	return f[(LengthA - 1) % 2][LengthB - 1];
 //}
 
-double double_DFD(vector<Point>* A, vector<Point>* B) { //	standard DFD
-	int LengthA = (*A).size();
-	int LengthB = (*B).size();
+double double_DFD(vector<Point>& A, vector<Point>& B) { //	standard DFD
+	int LengthA = A.size();
+	int LengthB = B.size();
 	for (int i = 0; i < LengthA; i++) {
 		for (int j = 0; j < LengthB; j++) {
-			double distemp = double_dist(&((*A)[i]), &((*B)[j]));
+			double distemp = double_dist(A[i], B[j]);
 			if ((i == 0) && (j == 0)) { g[i % 2][j] = distemp; continue; }
 			if (i == 0) { g[i % 2][j] = max(g[i % 2][j - 1], distemp); continue; }
 			if (j == 0) { g[i % 2][j] = max(g[(i - 1) % 2][j], distemp); continue; }
@@ -119,13 +119,13 @@ double double_DFD(vector<Point>* A, vector<Point>* B) { //	standard DFD
 	return g[(LengthA - 1) % 2][LengthB - 1];
 }
 
-double DFD_LBrow(vector<Point>* A, vector<Point>* B) { //	standard DFD
-	int LengthA = (*A).size();
-	int LengthB = (*B).size();
+double DFD_LBrow(vector<Point>& A, vector<Point>& B) { //	standard DFD
+	int LengthA = A.size();
+	int LengthB = B.size();
 	for (int i = 0; i < LengthA; i++) {
 		double LBrow = INFINITE;
 		for (int j = 0; j < LengthB; j++) {
-			double distemp = double_dist(&((*A)[i]), &((*B)[j]));
+			double distemp = double_dist(A[i], B[j]);
 			LBrow = min(distemp, LBrow);
 			if ((i == 0) && (j == 0)) { g[i % 2][j] = distemp; continue; }
 			if (i == 0) { g[i % 2][j] = max(g[i % 2][j - 1], distemp); continue; }
@@ -137,15 +137,15 @@ double DFD_LBrow(vector<Point>* A, vector<Point>* B) { //	standard DFD
 	return g[(LengthA - 1) % 2][LengthB - 1];
 }
 
-double DFD_greedy(vector<Point>*A, vector<Point>*B) { // greedy solution
-	int LengthA = (*A).size();
-	int LengthB = (*B).size();
-	int i = 0, j = 0; double ans = double_dist(&((*A)[0]), &((*B)[0]));
+double DFD_greedy(vector<Point>& A, vector<Point>& B) { // greedy solution
+	int LengthA = A.size();
+	int LengthB = B.size();
+	int i = 0, j = 0; double ans = double_dist(A[0], B[0]);
 	while ((i < LengthA) || (j < LengthB)) {
 		double dis1 = INFINITE, dis2 = INFINITE, dis3 = INFINITE;
-		if (i < LengthA) dis1 = double_dist(&((*A)[i + 1]), &((*B)[j]));
-		if (j < LengthB) dis2 = double_dist(&((*A)[i]), &((*B)[j + 1]));
-		if ((i < LengthA) && (j < LengthB)) dis3 = double_dist(&((*A)[i + 1]), &((*B)[j + 1]));
+		if (i < LengthA) dis1 = double_dist(A[i + 1], B[j]);
+		if (j < LengthB) dis2 = double_dist(A[i], B[j + 1]);
+		if ((i < LengthA) && (j < LengthB)) dis3 = double_dist(A[i + 1], B[j + 1]);
 
 		if (dis1 < dis2) {
 			if (dis1 < dis3) { i = i + 1; ans = max(ans, dis1); }
@@ -160,9 +160,9 @@ double DFD_greedy(vector<Point>*A, vector<Point>*B) { // greedy solution
 	return ans;
 }
 
-double EP_DFD(vector<Point>* A, vector<Point>* B) { // early pruning 0-corner or 0 row;
-	int LengthA = (*A).size();
-	int LengthB = (*B).size();
+double EP_DFD(vector<Point>& A, vector<Point>& B) { // early pruning 0-corner or 0 row;
+	int LengthA = A.size();
+	int LengthB = B.size();
 
 	bool f_col[MaxLen];// f_col[i]=false if this column is all > epsilon;
 	memset(f_col, false, sizeof(f_col));
@@ -170,7 +170,7 @@ double EP_DFD(vector<Point>* A, vector<Point>* B) { // early pruning 0-corner or
 	for (int i = 0; i < LengthA; i++) {
 		double lbrow = INFINITE;
 		for (int j = 0; j < LengthB; j++) {
-			double distemp = double_dist(&((*A)[i]), &((*B)[j]));
+			double distemp = double_dist(A[i], B[j]);
 			lbrow = min(lbrow, distemp);
 			if ((i == 0) && (j == 0)) { g[i % 2][j] = distemp; continue; }
 			if (i == 0) { g[i % 2][j] = max(g[i % 2][j - 1], distemp); continue; }
@@ -193,36 +193,6 @@ double EP_DFD(vector<Point>* A, vector<Point>* B) { // early pruning 0-corner or
 	dfd_flag = true;
 	return g[(LengthA - 1) % 2][LengthB - 1];
 }
-
-//bool EP_DFD(vector<Point>* A, vector<Point>* B) { // early pruning 0-corner or 0 row;
-//	int LengthA = (*A).size();
-//	int LengthB = (*B).size();
-//
-//	bool f_col[MaxLen];// f_col[i]=false if this column is all 0;
-//	memset(f_col, false, sizeof(f_col));
-//
-//	for (int i = 0; i < LengthA; i++) {
-//		for (int j = 0; j < LengthB; j++) {
-//			bool flag = bool_dist(&((*A)[i]), &((*B)[j]));
-//			if (!flag) { f[i % 2][j] = flag; continue; }
-//			if ((i == 0) && (j == 0)) { f[i % 2][j] = flag; continue; }
-//			if (i == 0) { f[i % 2][j] = f[i % 2][j - 1] & flag; continue; }
-//			if (j == 0) { f[i % 2][j] = f[(i - 1) % 2][j] & flag; continue; }
-//			f[i % 2][j] = (f[(i - 1) % 2][j] | f[i % 2][j - 1] | f[(i - 1) % 2][j - 1]) & flag;
-//		}
-//
-//		for (int j = 0; j < LengthB; j++) {
-//			if (f[i % 2][j]) break;// find a 1 can't prune
-//			if ((!f_col[j]) || (j == (LengthB - 1))) return false; // if exist 0-corner or 0-row
-//		}
-//
-//		for (int j = 0; j < LengthB; j++) {
-//			f_col[j] = f_col[j] | f[i % 2][j];// update f_col
-//		}
-//	}
-//
-//	return f[(LengthA - 1) % 2][LengthB - 1];
-//}
 
 //bool EPplus_DFD(vector<Point>* A, vector<Point>* B) {
 //	int LengthA = (*A).size();
