@@ -27,10 +27,11 @@ namespace Mtree {
 
 	vector<Node> Tree;
 	vector<Entry> NN, N1, N2;
-	vector<int> Nin, RQans;
-	int root;
+	vector<int> Nin, Candidate;
+	int root, cnt, DisNum;
 
 	double GetDistance(Entry& A, Entry& B) { // distance
+		DisNum++;
 		double dfd = double_DFD(All_Query[A.Tid].Points, All_Data[B.Tid].Points);
 		return dfd;
 	}
@@ -43,7 +44,7 @@ namespace Mtree {
 		}
 		else {
 			for (int i = 0; i < CurNode.entry_num; i++) {
-				RQans.push_back(CurNode.entries[i].Tid);
+				Candidate.push_back(CurNode.entries[i].Tid);
 			}
 		}
 	}
@@ -73,8 +74,9 @@ namespace Mtree {
 		else {
 			for (int i = 0; i < CurNode.entry_num; i++) {
 				if (abs(DisPQ - CurNode.entries[i].dis_p) <= Q.radius) {
-					double DisRQ = GetDistance(Q, CurNode.entries[i]);
-					if (DisRQ <= Q.radius) RQans.push_back(CurNode.entries[i].Tid);
+					//double DisRQ = GetDistance(Q, CurNode.entries[i]);
+					//if (DisRQ <= Q.radius) RQans.push_back(CurNode.entries[i].Tid);
+					Candidate.push_back(CurNode.entries[i].Tid);
 				}
 			}
 		}

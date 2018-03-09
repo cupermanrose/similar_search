@@ -6,7 +6,7 @@ using namespace std;
 const int MaxLen = 100000;
 const int data_number = 181;
 const int query_number = 181;
-const int TestNumber = 100;
+const int TestNumber = 1000;
 const bool addpoints = false;
 fstream fout("G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\test.txt", ios::out);
 

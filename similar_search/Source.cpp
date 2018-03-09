@@ -51,17 +51,12 @@ int main(int argc, char **argv) {
 			out_time("mtree: ");
 		}
 
-		/*{
+		{
 			init_time();
 			similarity_search_rtree();
 			out_time("rtree: ");
-		}*/
+		}
 
-		/*{
-			init_time();
-			similarity_search_rtree();
-			out_time("rtree: ");
-		}*/
 
 		{
 			init_time();

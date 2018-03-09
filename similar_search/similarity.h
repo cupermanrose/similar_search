@@ -32,9 +32,11 @@ void similarity_search_rtree() {
 	init_time();
 	Rtree::Build(filename.c_str(), All_Data.size());
 	out_time("Rtree building: ");
+	init_time();
 	Rtree::ReadFromDisk(filename.c_str());
 
-	int anssum = 0;
+	int anssum = 0, lbcell = 0;
+	Rtree::cnt = 0;
 	for (int i = 0; i < All_Query.size(); i++) {
 		answer.clear();
 		Rtree::MBR MBR;
@@ -45,30 +47,51 @@ void similarity_search_rtree() {
 		Rtree::Candidate.clear();
 		Rtree::RangeQueryMemory(Rtree::Tree[Rtree::root],Q);
 		for (int j = 0; j < Rtree::Candidate.size(); j++) {
-			double bdis = double_DFD(All_Query[i].Points, All_Data[Rtree::Candidate[j]].Points);
+			Rtree::cnt++;
+			if (LB_cell(All_Query[i].Points, All_Data[Rtree::Candidate[j]].Points) > epsilon) continue;
+			lbcell++;
+			//double bdis = double_DFD(All_Query[i].Points, All_Data[Rtree::Candidate[j]].Points);
+			double bdis = DFD_LBrow(All_Query[i].Points, All_Data[Rtree::Candidate[j]].Points);
 			if (bdis < epsilon) answer.push_back(Rtree::Candidate[j]);
 		}
 		anssum = anssum + answer.size();
 	}
+	fout << "Rtree::cnt: " << Rtree::cnt << endl;
+	fout << "lbcell: " << lbcell << endl;
 	fout << "Rtree answer: " << anssum << endl;
 }
 
 void similarity_search_mtree() {
 
 	string filename = "G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\MTree_" + to_string(TestNumber) + "_" + to_string(Mtree::Capacity) + ".txt";
-	init_time();
+	/*init_time();
 	Mtree::Build(filename.c_str(), All_Data.size());
 	out_time("Mtree building: ");
+	init_time();*/
 	Mtree::ReadFromDisk(filename.c_str());
 
-	int anssum = 0;
+	int anssum = 0, lbcell = 0;
+	Mtree::cnt = 0;
+	Mtree::DisNum = 0;
 	for (int i = 0; i < All_Query.size(); i++) {
-		Mtree::RQans.clear();
+		answer.clear();
+		Mtree::Candidate.clear();
 		Mtree::Entry Q;
 		Mtree::CreateEntry(Q, i, NULL, 0, epsilon);
 		Mtree::RangeQueryMemory(Mtree::Tree[Mtree::root], Q, 0);
-		anssum = anssum + Mtree::RQans.size();
+		for (int j = 0; j < Mtree::Candidate.size(); j++) {
+			Mtree::cnt++;
+			if (LB_cell(All_Query[i].Points, All_Data[Mtree::Candidate[j]].Points) > epsilon) continue;
+			lbcell++;
+			//double bdis = double_DFD(All_Query[i].Points, All_Data[Rtree::Candidate[j]].Points);
+			double bdis = DFD_LBrow(All_Query[i].Points, All_Data[Mtree::Candidate[j]].Points);
+			if (bdis < epsilon) answer.push_back(Mtree::Candidate[j]);
+		}
+		anssum = anssum + answer.size();
 	}
+	fout << "Mtree::DisNum: " << Mtree::DisNum << endl;
+	fout << "Mtree::cnt: " << Mtree::cnt << endl;
+	fout << "lbcell: " << lbcell << endl;
 	fout << "Mtree answer: " << anssum << endl;
 }
 
