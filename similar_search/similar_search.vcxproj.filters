@@ -44,5 +44,11 @@
     <ClInclude Include="R_tree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="grouping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="M_tree_bulkload.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

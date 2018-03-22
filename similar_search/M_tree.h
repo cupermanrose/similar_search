@@ -27,16 +27,17 @@ namespace Mtree {
 
 	vector<Node> Tree;
 	vector<Entry> NN, N1, N2;
-	vector<int> Nin, Candidate;
-	int root, cnt, DisNum;
+	vector<int> Nin, Candidate, Answer;
+	int root, DisNum;
+	double d1[Capacity + 1], d2[Capacity + 1];
+	bool flag[Capacity + 1];
 
 	double GetDistance(Entry& A, Entry& B) { // distance
-		DisNum++;
 		double dfd = double_DFD(All_Query[A.Tid].Points, All_Data[B.Tid].Points);
 		return dfd;
 	}
 
-	void AddAllEntry(Node& CurNode) {
+	void AddAllEntry(Node& CurNode) { // add to the answer directly
 		if (!CurNode.leaf) {
 			for (int i = 0; i < CurNode.entry_num; i++) {
 				AddAllEntry(Tree[CurNode.entries[i].son_node]);
@@ -44,21 +45,17 @@ namespace Mtree {
 		}
 		else {
 			for (int i = 0; i < CurNode.entry_num; i++) {
-				Candidate.push_back(CurNode.entries[i].Tid);
+				//Candidate.push_back(CurNode.entries[i].Tid);
+				Answer.push_back(CurNode.entries[i].Tid);
 			}
 		}
 	}
 
 	void RangeQueryMemory(Node& CurNode, Entry& Q, double DisPQ) {
-		/*double DisPQ;
-		if (!CurNode.root) {
-			DisPQ = GetDistance(Q, CurNode.entries[CurNode.center]);
-		}
-		else DisPQ = 0;*/
-
 		if (!CurNode.leaf) {
 			for (int i = 0; i < CurNode.entry_num; i++) {
 				if (abs(DisPQ - CurNode.entries[i].dis_p) <= (Q.radius + CurNode.entries[i].radius)) {
+					DisNum++;
 					double DisRQ = GetDistance(Q, CurNode.entries[i]);
 					if (DisRQ + CurNode.entries[i].radius <= Q.radius) { // Q include CurNode.entries[i]
 						AddAllEntry(Tree[CurNode.entries[i].son_node]);
@@ -75,7 +72,6 @@ namespace Mtree {
 			for (int i = 0; i < CurNode.entry_num; i++) {
 				if (abs(DisPQ - CurNode.entries[i].dis_p) <= Q.radius) {
 					//double DisRQ = GetDistance(Q, CurNode.entries[i]);
-					//if (DisRQ <= Q.radius) RQans.push_back(CurNode.entries[i].Tid);
 					Candidate.push_back(CurNode.entries[i].Tid);
 				}
 			}
@@ -122,23 +118,63 @@ namespace Mtree {
 		return temppair;
 	}
 
-	pair<int, int> Partition(int Op1, int Op2) {
-		pair<int, int> temppair; // store new center entries of two node 
-		N1.clear(); N2.clear();
+	//pair<int, int> Partition(int Op1, int Op2) { // Generalized Hyperplane
+	//	pair<int, int> temppair; // store new center entries of two node 
+	//	N1.clear(); N2.clear();
+	//	for (int i = 0; i < NN.size(); i++) {
+	//		double d1 = GetDistance(NN[i], NN[Op1]);
+	//		double d2 = GetDistance(NN[i], NN[Op2]);
+	//		if (((d1 < d2) || (i == Op1)) && (i != Op2)) { // NN[i] is closer to Op1, op2 cannot be in the N1
+	//			NN[i].dis_p = d1; // update dis_p
+	//			N1.push_back(NN[i]);
+	//			if (i == Op1) temppair.first = N1.size() - 1;
+	//		}
+	//		else {
+	//			NN[i].dis_p = d2;
+	//			N2.push_back(NN[i]);
+	//			if (i == Op2) temppair.second = N2.size() - 1;
+	//		}
+	//	}
+	//	return temppair;
+	//}
+
+	pair<int, int> Partition(int Op1, int Op2) { // Balanced
+		for (int i = 0; i < NN.size(); i++) flag[i] = false;
 		for (int i = 0; i < NN.size(); i++) {
-			double d1 = GetDistance(NN[i], NN[Op1]);
-			double d2 = GetDistance(NN[i], NN[Op2]);
-			if (((d1 < d2) || (i == Op1)) && (i != Op2)) { // NN[i] is closer to Op1, op2 cannot be in the N1
-				NN[i].dis_p = d1; // update dis_p
-				N1.push_back(NN[i]);
-				if (i == Op1) temppair.first = N1.size() - 1;
+			d1[i] = GetDistance(NN[i], NN[Op1]);
+			d2[i] = GetDistance(NN[i], NN[Op2]);
+		}
+		N1.clear(); N2.clear();
+		NN[Op1].dis_p = 0; N1.push_back(NN[Op1]); flag[Op1] = true;
+		NN[Op2].dis_p = 0; N2.push_back(NN[Op2]); flag[Op2] = true;
+		tot = NN.size() - 2;
+		while (tot > 0) {
+			tot--;
+			if (tot % 2 == 0) {
+				int min = -1; double mind = INFINITE;
+				for (int i = 0; i < NN.size(); i++) {
+					if ((!flag[i]) && (mind > d1[i])) {
+						min = i; mind = d1[i];
+					}
+				}
+				NN[min].dis_p = mind;
+				N1.push_back(NN[min]);
+				flag[min] = true;
 			}
 			else {
-				NN[i].dis_p = d2;
-				N2.push_back(NN[i]);
-				if (i == Op2) temppair.second = N2.size() - 1;
+				int min = -1; double mind = INFINITE;
+				for (int i = 0; i < NN.size(); i++) {
+					if ((!flag[i]) && (mind > d2[i])) {
+						min = i; mind = d2[i];
+					}
+				}
+				NN[min].dis_p = mind;
+				N2.push_back(NN[min]);
+				flag[min] = true;
 			}
 		}
+		pair<int, int> temppair;
+		temppair.first = 0; temppair.second = 0;
 		return temppair;
 	}
 

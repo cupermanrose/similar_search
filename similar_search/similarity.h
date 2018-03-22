@@ -5,7 +5,9 @@
 #include <iterator>
 #include <iomanip>
 #include <M_tree.h>
+#include <M_tree_bulkload.h>
 #include <R_tree.h>
+#include <grouping.h>
 
 using namespace std;
 
@@ -35,10 +37,9 @@ void similarity_search_rtree() {
 	init_time();
 	Rtree::ReadFromDisk(filename.c_str());
 
-	int anssum = 0, lbcell = 0;
-	Rtree::cnt = 0;
+	int anssum = 0, lbcell = 0, ubrtree = 0, lbrtree = 0;
 	for (int i = 0; i < All_Query.size(); i++) {
-		answer.clear();
+		Rtree::Answer.clear();
 		Rtree::MBR MBR;
 		Rtree::CreateMBR(MBR, i);
 		Rtree::ExtendMBR(MBR, epsilon);
@@ -46,53 +47,105 @@ void similarity_search_rtree() {
 		Rtree::CreateEntry(Q, i, -1, MBR);
 		Rtree::Candidate.clear();
 		Rtree::RangeQueryMemory(Rtree::Tree[Rtree::root],Q);
+		ubrtree = ubrtree + Rtree::Answer.size() + Rtree::Candidate.size();
+		lbrtree = lbrtree + Rtree::Candidate.size();
 		for (int j = 0; j < Rtree::Candidate.size(); j++) {
-			Rtree::cnt++;
 			if (LB_cell(All_Query[i].Points, All_Data[Rtree::Candidate[j]].Points) > epsilon) continue;
 			lbcell++;
 			//double bdis = double_DFD(All_Query[i].Points, All_Data[Rtree::Candidate[j]].Points);
 			double bdis = DFD_LBrow(All_Query[i].Points, All_Data[Rtree::Candidate[j]].Points);
-			if (bdis < epsilon) answer.push_back(Rtree::Candidate[j]);
+			if (bdis < epsilon) Rtree::Answer.push_back(Rtree::Candidate[j]);
 		}
-		anssum = anssum + answer.size();
+		anssum = anssum + Rtree::Answer.size();
 	}
-	fout << "Rtree::cnt: " << Rtree::cnt << endl;
+	fout << "ubrtree: " << ubrtree << endl;
+	fout << "lbrtree: " << lbrtree << endl;
 	fout << "lbcell: " << lbcell << endl;
 	fout << "Rtree answer: " << anssum << endl;
 }
 
 void similarity_search_mtree() {
 
-	string filename = "G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\MTree_" + to_string(TestNumber) + "_" + to_string(Mtree::Capacity) + ".txt";
+	string filename = "G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\MTree_" + to_string(TestNumber) + "_" + to_string(Mtree::Capacity) + "(balanced).txt";
 	/*init_time();
 	Mtree::Build(filename.c_str(), All_Data.size());
 	out_time("Mtree building: ");
 	init_time();*/
 	Mtree::ReadFromDisk(filename.c_str());
 
-	int anssum = 0, lbcell = 0;
-	Mtree::cnt = 0;
+	/*int res = 0;
+	for (int i = 0; i < Mtree::Tree.size()-1; i++) {
+		res=res+Mtree::Tree[i].entry_num;
+	}
+	cout << res / Mtree::Tree.size() << endl;
+	system("pause");*/
+
+	int anssum = 0, lbcell = 0, ubmtree = 0, lbmtree = 0;
 	Mtree::DisNum = 0;
 	for (int i = 0; i < All_Query.size(); i++) {
-		answer.clear();
+		Mtree::Answer.clear();
 		Mtree::Candidate.clear();
 		Mtree::Entry Q;
 		Mtree::CreateEntry(Q, i, NULL, 0, epsilon);
 		Mtree::RangeQueryMemory(Mtree::Tree[Mtree::root], Q, 0);
+		ubmtree = ubmtree + Mtree::Candidate.size() + Mtree::Answer.size();
+		lbmtree = lbmtree + Mtree::Candidate.size();
 		for (int j = 0; j < Mtree::Candidate.size(); j++) {
-			Mtree::cnt++;
 			if (LB_cell(All_Query[i].Points, All_Data[Mtree::Candidate[j]].Points) > epsilon) continue;
 			lbcell++;
 			//double bdis = double_DFD(All_Query[i].Points, All_Data[Rtree::Candidate[j]].Points);
 			double bdis = DFD_LBrow(All_Query[i].Points, All_Data[Mtree::Candidate[j]].Points);
-			if (bdis < epsilon) answer.push_back(Mtree::Candidate[j]);
+			if (bdis < epsilon) Mtree::Answer.push_back(Mtree::Candidate[j]);
 		}
-		anssum = anssum + answer.size();
+		anssum = anssum + Mtree::Answer.size();
 	}
 	fout << "Mtree::DisNum: " << Mtree::DisNum << endl;
-	fout << "Mtree::cnt: " << Mtree::cnt << endl;
+	fout << "ubmtree: " << ubmtree << endl;
+	fout << "lbmtree: " << lbmtree << endl;
 	fout << "lbcell: " << lbcell << endl;
 	fout << "Mtree answer: " << anssum << endl;
+}
+
+void similarity_search_mtreeBL() {
+
+	string filename = "G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\MTreeBulkLoad_" + to_string(TestNumber) + "_" + to_string(MtreeBulkLoad::Capacity) + ".txt";
+	/*init_time();
+	MtreeBulkLoad::Build(filename.c_str(), All_Data.size());
+	out_time("MtreeBulkLoad building: ");
+	init_time();*/
+	MtreeBulkLoad::ReadFromDisk(filename.c_str());
+
+	/*int res = 0;
+	for (int i = 0; i < Mtree::Tree.size()-1; i++) {
+	res=res+Mtree::Tree[i].entry_num;
+	}
+	cout << res / Mtree::Tree.size() << endl;
+	system("pause");*/
+
+	int anssum = 0, lbcell = 0, ubmtree = 0, lbmtree = 0;
+	MtreeBulkLoad::DisNum = 0;
+	for (int i = 0; i < All_Query.size(); i++) {
+		MtreeBulkLoad::Answer.clear();
+		MtreeBulkLoad::Candidate.clear();
+		MtreeBulkLoad::Entry Q;
+		MtreeBulkLoad::CreateEntry(Q, i, -1, 0, epsilon);
+		MtreeBulkLoad::RangeQueryMemory(MtreeBulkLoad::Tree[MtreeBulkLoad::root], Q, 0);
+		ubmtree = ubmtree + MtreeBulkLoad::Candidate.size() + MtreeBulkLoad::Answer.size();
+		lbmtree = lbmtree + MtreeBulkLoad::Candidate.size();
+		for (int j = 0; j < MtreeBulkLoad::Candidate.size(); j++) {
+			if (LB_cell(All_Query[i].Points, All_Data[MtreeBulkLoad::Candidate[j]].Points) > epsilon) continue;
+			lbcell++;
+			//double bdis = double_DFD(All_Query[i].Points, All_Data[Rtree::Candidate[j]].Points);
+			double bdis = DFD_LBrow(All_Query[i].Points, All_Data[MtreeBulkLoad::Candidate[j]].Points);
+			if (bdis < epsilon) MtreeBulkLoad::Answer.push_back(MtreeBulkLoad::Candidate[j]);
+		}
+		anssum = anssum + MtreeBulkLoad::Answer.size();
+	}
+	fout << "MtreeBulkLoad::DisNum: " << MtreeBulkLoad::DisNum << endl;
+	fout << "ubmtree: " << ubmtree << endl;
+	fout << "lbmtree: " << lbmtree << endl;
+	fout << "lbcell: " << lbcell << endl;
+	fout << "MtreeBulkLoad answer: " << anssum << endl;
 }
 
 void similarity_search_baseline() {
@@ -105,15 +158,49 @@ void similarity_search_baseline() {
 			double bdis = DFD_LBrow(All_Query[i].Points, All_Data[j].Points);
 			if (bdis < epsilon) answer.push_back(j);
 		}
-		/*cout << i << ": ";
+		cout << i << ": ";
 		for (int j = 0; j < answer.size(); j++) {
 			cout << answer[j] << " ";
+		}
+		cout << endl;
+		anssum = anssum + answer.size();
+	}
+	fout << "lbcell: " << lbcell << endl;
+	fout << "baseline answer: " << anssum << endl;
+}
+
+void similarity_search_BLGroup() {
+	init_time();
+	grouping::Init();
+	out_time("grouping Init: ");
+	int anssum = 0, lbcell = 0, Grouplb = 0, Groupub = 0;
+	for (int i = 0; i < All_Query.size(); i++) {
+		answer.clear();
+		for (int j = 0; j < All_Data.size(); j++) {
+			if (LB_cell(All_Query[i].Points, All_Data[j].Points) > epsilon) continue;
+			lbcell++;
+			grouping::GroupTra NewQ;
+			grouping::DivideTrajectory(All_Query[i], i, NewQ);
+			if (grouping::GlbDFD_LBrow(NewQ, grouping::AllGTra[j]) > epsilon) continue;
+			Grouplb++;
+			if (grouping::GubDFD_LBrow(NewQ, grouping::AllGTra[j]) < epsilon) answer.push_back(j);
+			else {
+				Groupub++;
+				double bdis = DFD_LBrow(All_Query[i].Points, All_Data[j].Points);
+				if (bdis < epsilon) answer.push_back(j);
+			}
+		}
+		/*cout << i << ": ";
+		for (int j = 0; j < answer.size(); j++) {
+		cout << answer[j] << " ";
 		}
 		cout << endl;*/
 		anssum = anssum + answer.size();
 	}
 	fout << "lbcell: " << lbcell << endl;
-	fout << "baseline answer: " << anssum << endl;
+	fout << "Grouplb: " << Grouplb << endl;
+	fout << "Groupub: " << Groupub << endl;
+	fout << "BLGroup answer: " << anssum << endl;
 }
 
 void update_lbub(int x, double lb, double ub, double exact_dfd) {

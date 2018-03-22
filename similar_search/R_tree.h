@@ -32,7 +32,7 @@ namespace Rtree {
 
 	vector<Node> Tree;
 	vector<Entry> NN, N1, N2;
-	vector<int> Candidate;
+	vector<int> Candidate, Answer;
 	int root, cnt;
 	
 	void ClearMBR(MBR& MBR) {

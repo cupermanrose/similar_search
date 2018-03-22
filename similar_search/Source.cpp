@@ -13,6 +13,7 @@
 #include <similarity.h>
 #include <M_tree.h>
 #include <R_tree.h>
+#include <M_tree_bulkload.h>
 
 using namespace std;
 
@@ -37,12 +38,20 @@ int main(int argc, char **argv) {
 			out_time("brute force: ");
 		}*/
 
-		{
+		/*{
 			init_time();
 
 			similarity_search_baseline();
 
 			out_time("baseline: ");
+		}*/
+
+		{
+			init_time();
+
+			similarity_search_BLGroup();
+
+			out_time("BLGroup: ");
 		}
 
 		{
@@ -53,9 +62,15 @@ int main(int argc, char **argv) {
 
 		{
 			init_time();
+			similarity_search_mtreeBL();
+			out_time("mtreeBL: ");
+		}
+
+		/*{
+			init_time();
 			similarity_search_rtree();
 			out_time("rtree: ");
-		}
+		}*/
 
 
 		{

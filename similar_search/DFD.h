@@ -119,7 +119,7 @@ double double_DFD(vector<Point>& A, vector<Point>& B) { //	standard DFD
 	return g[(LengthA - 1) % 2][LengthB - 1];
 }
 
-double DFD_LBrow(vector<Point>& A, vector<Point>& B) { //	standard DFD
+double DFD_LBrow(vector<Point>& A, vector<Point>& B) { //	standard DFD with LBrow
 	int LengthA = A.size();
 	int LengthB = B.size();
 	for (int i = 0; i < LengthA; i++) {
