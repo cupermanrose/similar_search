@@ -46,25 +46,31 @@ int main(int argc, char **argv) {
 			out_time("baseline: ");
 		}*/
 
-		{
+		/*{
 			init_time();
 
 			similarity_search_BLGroup();
 
 			out_time("BLGroup: ");
-		}
+		}*/
 
-		{
+		/*{
 			init_time();
 			similarity_search_mtree();
 			out_time("mtree: ");
-		}
+		}*/
 
 		{
 			init_time();
-			similarity_search_mtreeBL();
+			similarity_search_mtreeBLLoose();
 			out_time("mtreeBL: ");
 		}
+
+		/*{
+			init_time();
+			similarity_search_mtreeBL();
+			out_time("mtreeBL: ");
+		}*/
 
 		/*{
 			init_time();
@@ -72,8 +78,13 @@ int main(int argc, char **argv) {
 			out_time("rtree: ");
 		}*/
 
+		/*{
+		init_time();
+		Get_exact_DFD();
+		out_time("GetExactDFD: ");
+		}*/
 
-		{
+		/*{
 			init_time();
 			init_KD();
 			out_time("init KD: ");
@@ -83,7 +94,7 @@ int main(int argc, char **argv) {
 			similarity_search_triangle();
 
 			out_time("triangle: ");
-		}
+		}*/
 		
 
 	/*{

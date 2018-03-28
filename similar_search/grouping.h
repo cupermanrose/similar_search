@@ -82,6 +82,36 @@ namespace grouping {
 		return sqrt(res);
 	}
 	
+	double GlbDFD(GroupTra& A, GroupTra& B) { //	standard DFD lb
+		int LengthA = A.length;
+		int LengthB = B.length;
+		for (int i = 0; i < LengthA; i++) {
+			for (int j = 0; j < LengthB; j++) {
+				double distemp = LDis(A.MBR[i], B.MBR[j]);
+				if ((i == 0) && (j == 0)) { g[i % 2][j] = distemp; continue; }
+				if (i == 0) { g[i % 2][j] = max(g[i % 2][j - 1], distemp); continue; }
+				if (j == 0) { g[i % 2][j] = max(g[(i - 1) % 2][j], distemp); continue; }
+				g[i % 2][j] = max(min(min(g[(i - 1) % 2][j], g[i % 2][j - 1]), g[(i - 1) % 2][j - 1]), distemp);
+			}
+		}
+		return g[(LengthA - 1) % 2][LengthB - 1];
+	}
+
+	double GubDFD(GroupTra& A, GroupTra& B) { //	standard DFD ub
+		int LengthA = A.length;
+		int LengthB = B.length;
+		for (int i = 0; i < LengthA; i++) {
+			for (int j = 0; j < LengthB; j++) {
+				double distemp = UDis(A.MBR[i], B.MBR[j]);
+				if ((i == 0) && (j == 0)) { g[i % 2][j] = distemp; continue; }
+				if (i == 0) { g[i % 2][j] = max(g[i % 2][j - 1], distemp); continue; }
+				if (j == 0) { g[i % 2][j] = max(g[(i - 1) % 2][j], distemp); continue; }
+				g[i % 2][j] = max(min(min(g[(i - 1) % 2][j], g[i % 2][j - 1]), g[(i - 1) % 2][j - 1]), distemp);
+			}
+		}
+		return g[(LengthA - 1) % 2][LengthB - 1];
+	}
+
 	double GlbDFD_LBrow(GroupTra& A, GroupTra& B) {
 		int LengthA = A.length;
 		int LengthB = B.length;

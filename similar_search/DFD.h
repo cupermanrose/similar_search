@@ -24,6 +24,20 @@ double LB_cell(vector<Point>& A, vector<Point>& B) {
 	return (max(double_dist(A[0], B[0]), double_dist(A[A.size() - 1], B[B.size() - 1])));
 }
 
+bool LB_band(int Q, int A) { // true: has a LB_band; false no lower bound
+	bool flag = false;
+	for (int p = 0; p < All_Query[Q].Points.size(); p++) {
+		if (!Range_KDsearch_forband(All_KD[A], All_Query[Q].Points[p].latitude, All_Query[Q].Points[p].longitude, All_KDroot[A])) { flag = true; break; }
+	}
+	if (flag) return true;
+	flag = false;
+	for (int p = 0; p < All_Data[A].Points.size(); p++) {
+		if (!Range_KDsearch_forband(All_KD[Q], All_Data[A].Points[p].latitude, All_Data[A].Points[p].longitude, All_KDroot[Q])) { flag = true; break; }
+	}
+	if (flag) return true;
+	return false;
+}
+
 //double LB_cross(vector<Point>* A, vector<Point>* B) {
 //	double LB = 0, LB_row, LB_col;
 //	int LengthA = (*A).size();
@@ -134,6 +148,7 @@ double DFD_LBrow(vector<Point>& A, vector<Point>& B) { //	standard DFD with LBro
 		}
 		if (LBrow > epsilon) return LBrow;
 	}
+	dfd_flag = true;
 	return g[(LengthA - 1) % 2][LengthB - 1];
 }
 
@@ -194,55 +209,55 @@ double EP_DFD(vector<Point>& A, vector<Point>& B) { // early pruning 0-corner or
 	return g[(LengthA - 1) % 2][LengthB - 1];
 }
 
-//bool EPplus_DFD(vector<Point>* A, vector<Point>* B) {
-//	int LengthA = (*A).size();
-//	int LengthB = (*B).size();
-//	
-//	memset(f_col, false, sizeof(f_col));
-//	memset(f_near, LengthB, sizeof(f_near));
-//
-//
-//	for (int i = 0; i < LengthA; i++) {
-//		int Nowi = i % 2; // reduce % times
-//		int Prei = (i - 1) % 2;
-//		int invalid_region = -1; // init all region is valid
-//
-//		for (int j = 0; j < LengthB; j++) {
-//			if (j <= invalid_region) { // in invalid_region
-//				f[Nowi][j] = false;
-//				continue;
-//			}
-//			//cnt++;
-//			bool flag = bool_dist(&((*A)[i]), &((*B)[j]));
-//			if (!flag) {
-//				f[Nowi][j] = flag;
-//				invalid_region = f_near[j] - 1; // update invalid_region;
-//				continue;
-//			}
-//			if ((i == 0) && (j == 0)) { f[Nowi][j] = flag; continue; }
-//			if (i == 0) { f[Nowi][j] = f[Nowi][j - 1] & flag; continue; }
-//			if (j == 0) { f[Nowi][j] = f[Prei][j] & flag; continue; }
-//			f[Nowi][j] = (f[Prei][j] | f[Nowi][j - 1] | f[Prei][j - 1]) & flag;
-//		}
-//
-//		for (int j = 0; j < LengthB; j++) {
-//			if (f[Nowi][j]) break;// find a 1 can't prune
-//			if ((!f_col[j]) || (j == (LengthB - 1))) return false; // if exist 0-corner or 0-row
-//		}
-//
-//		for (int j = 0; j < LengthB; j++) { // update f_col
-//			f_col[j] = f_col[j] | f[Nowi][j];
-//		}
-//
-//		int nearest = LengthB;
-//		for (int j = LengthB - 1; j >= 0; j--) { //update f_near
-//			if (f[Nowi][j]) nearest = j;
-//			f_near[j] = nearest;
-//		}
-//	}
-//
-//	return f[(LengthA - 1) % 2][LengthB - 1];
-//}
+bool EPplus_DFD(vector<Point>& A, vector<Point>& B) {
+	int LengthA = A.size();
+	int LengthB = B.size();
+	
+	memset(f_col, false, sizeof(f_col));
+	memset(f_near, LengthB, sizeof(f_near));
+
+
+	for (int i = 0; i < LengthA; i++) {
+		int Nowi = i % 2; // reduce % times
+		int Prei = (i - 1) % 2;
+		int invalid_region = -1; // init all region is valid
+
+		for (int j = 0; j < LengthB; j++) {
+			if (j <= invalid_region) { // in invalid_region
+				f[Nowi][j] = false;
+				continue;
+			}
+			//cnt++;
+			bool flag = bool_dist(A[i], B[j]);
+			if (!flag) {
+				f[Nowi][j] = flag;
+				invalid_region = f_near[j] - 1; // update invalid_region;
+				continue;
+			}
+			if ((i == 0) && (j == 0)) { f[Nowi][j] = flag; continue; }
+			if (i == 0) { f[Nowi][j] = f[Nowi][j - 1] & flag; continue; }
+			if (j == 0) { f[Nowi][j] = f[Prei][j] & flag; continue; }
+			f[Nowi][j] = (f[Prei][j] | f[Nowi][j - 1] | f[Prei][j - 1]) & flag;
+		}
+
+		for (int j = 0; j < LengthB; j++) {
+			if (f[Nowi][j]) break;// find a 1 can't prune
+			if ((!f_col[j]) || (j == (LengthB - 1))) return false; // if exist 0-corner or 0-row
+		}
+
+		for (int j = 0; j < LengthB; j++) { // update f_col
+			f_col[j] = f_col[j] | f[Nowi][j];
+		}
+
+		int nearest = LengthB;
+		for (int j = LengthB - 1; j >= 0; j--) { //update f_near
+			if (f[Nowi][j]) nearest = j;
+			f_near[j] = nearest;
+		}
+	}
+
+	return f[(LengthA - 1) % 2][LengthB - 1];
+}
 
 //bool EPplus_RSeg_DFD(vector<Point>* A, vector<Point>* B, int datai, int dataj) {
 //	int LengthA = (*A).size();

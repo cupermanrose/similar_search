@@ -6,7 +6,7 @@ using namespace std;
 const int MaxLen = 100000;
 const int data_number = 181;
 const int query_number = 181;
-const int TestNumber = 100;
+const int TestNumber = 1000;
 const bool addpoints = false;
 fstream fout("G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\test.txt", ios::out);
 
@@ -162,10 +162,11 @@ void init(string preffix) {
 
 	{//read exact dfd value
 		fstream fin("G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\exact_DFD.txt", ios::in);
+		//fstream fin("G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\Exact_1000_50.txt", ios::in);
 		ExactDFD.clear(); int prex = -1;
 		vector<pair<int, double>> tempvec; tempvec.clear();
-		//for (int i = 0; i < All_Data.size(); i++) {
 		for (int i = 0; i < 19000; i++) {
+		//for (int i = 0; i < All_Data.size(); i++) {
 			ExactDFD.push_back(tempvec);
 		}
 		while (!fin.eof()) {
@@ -175,6 +176,7 @@ void init(string preffix) {
 			pair<int, double> temppair = make_pair(y, dis);
 			ExactDFD[x].push_back(temppair);
 		}
+		fin.close();
 	}
 	
 

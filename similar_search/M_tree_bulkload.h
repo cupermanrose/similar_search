@@ -7,6 +7,7 @@
 #include <vector>
 #include <time.h> 
 #include <BLtoDist.h>
+#include <grouping.h>
 
 using namespace std;
 
@@ -81,6 +82,38 @@ namespace MtreeBulkLoad {
 			}
 		}
 	}
+	
+	void RangeQueryLoose(Node& CurNode, Entry& Q, double LBPQ, double UBPQ) {
+		if (!CurNode.leaf) {
+			for (int i = 0; i < CurNode.entry_num; i++) {
+				if (((LBPQ - CurNode.entries[i].dis_p) <= (Q.radius + CurNode.entries[i].radius)) &&
+					((CurNode.entries[i].dis_p - UBPQ) <= (Q.radius + CurNode.entries[i].radius))) {
+					DisNum++;
+					double LBRQ = grouping::GlbDFD(grouping::AllGTra[Q.Tid], grouping::AllGTra[CurNode.entries[i].Tid]);
+					double UBRQ = grouping::GubDFD(grouping::AllGTra[Q.Tid], grouping::AllGTra[CurNode.entries[i].Tid]);
+
+					if (UBRQ + CurNode.entries[i].radius <= Q.radius) { // Q include CurNode.entries[i]
+						AddAllEntry(Tree[CurNode.entries[i].son_node]);
+					}
+					else {
+						if (LBRQ <= Q.radius + CurNode.entries[i].radius) {
+							RangeQueryLoose(Tree[CurNode.entries[i].son_node], Q, LBRQ, UBRQ);
+						}
+					}
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < CurNode.entry_num; i++) {
+				if (((LBPQ - CurNode.entries[i].dis_p) <= Q.radius) &&
+					((CurNode.entries[i].dis_p - UBPQ) <= Q.radius)) {
+					//double DisRQ = GetDistance(Q, CurNode.entries[i]);
+					Candidate.push_back(CurNode.entries[i].Tid);
+				}
+			}
+		}
+	}
+	
 	void CreateEntry(Entry& NewEntry, int Tid, int son_node, double dis_p, double radius) {
 		NewEntry.Tid = Tid;
 		NewEntry.son_node = son_node;
