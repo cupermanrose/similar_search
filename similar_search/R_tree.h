@@ -30,6 +30,8 @@ namespace Rtree {
 		bool leaf, root;
 	};
 
+	vector<vector<Node>> AllTree;
+	vector<int> AllRoot;
 	vector<Node> Tree;
 	vector<Entry> NN, N1, N2;
 	vector<int> Candidate, Answer;
@@ -359,5 +361,6 @@ namespace Rtree {
 		cout << "Rtree root: " << root << endl;
 		cout << "Rtree size: " << Tree.size() << endl;
 	}
+
 }
 #endif

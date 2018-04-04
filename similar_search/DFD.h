@@ -153,8 +153,8 @@ double DFD_LBrow(vector<Point>& A, vector<Point>& B) { //	standard DFD with LBro
 }
 
 double DFD_greedy(vector<Point>& A, vector<Point>& B) { // greedy solution
-	int LengthA = A.size();
-	int LengthB = B.size();
+	int LengthA = A.size() - 1;
+	int LengthB = B.size() - 1;
 	int i = 0, j = 0; double ans = double_dist(A[0], B[0]);
 	while ((i < LengthA) || (j < LengthB)) {
 		double dis1 = INFINITE, dis2 = INFINITE, dis3 = INFINITE;
@@ -171,7 +171,6 @@ double DFD_greedy(vector<Point>& A, vector<Point>& B) { // greedy solution
 			else { i = i + 1; j = j + 1; ans = max(ans, dis3); }
 		}
 	}
-
 	return ans;
 }
 

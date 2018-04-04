@@ -148,6 +148,58 @@ namespace grouping {
 		return g[(LengthA - 1) % 2][LengthB - 1];
 	}
 
+	double GetDistPM(Point& A, MBR& M) { // true: A in M
+		double res = 0;
+		for (int i = 0; i < dimension; i++) {
+			if (i == 0) {
+				if (A.latitude < M.L[0]) res = res + abs(A.latitude - M.L[0])*abs(A.latitude - M.L[0]);
+				if (A.latitude > M.U[0]) res = res + abs(A.latitude - M.U[0])*abs(A.latitude - M.U[0]);
+			}
+			else {
+				if (A.longitude < M.L[1]) res = res + abs(A.longitude - M.L[1])*abs(A.longitude - M.L[1]);
+				if (A.longitude > M.U[1]) res = res + abs(A.longitude - M.U[1])*abs(A.longitude - M.U[1]);
+			}
+		}
+		return sqrt(res);
+	}
+
+	double GetPdist(Point&A, double lat, double lon) {
+		Point B;
+		B.latitude = lat; B.longitude = lon;
+		return double_dist(A, B);
+	}
+
+	bool LB_band(int Q, int A) {// true: has a LB_band; false no lower bound
+		double d1, d2, d3, d4, d;
+		for (int i = 0; i < All_Query[Q].Points.size(); i++) {
+			bool flag = false;
+			for (int j = 0; j < AllGTra[A].length; j++) {
+				if (flag) continue;
+				d = GetDistPM(All_Query[Q].Points[i], AllGTra[A].MBR[j]);
+				/*d1 = GetPdist(All_Query[Q].Points[i], AllGTra[A].MBR[j].L[0], AllGTra[A].MBR[j].L[1]);
+				d2 = GetPdist(All_Query[Q].Points[i], AllGTra[A].MBR[j].L[0], AllGTra[A].MBR[j].U[1]);
+				d3 = GetPdist(All_Query[Q].Points[i], AllGTra[A].MBR[j].U[0], AllGTra[A].MBR[j].L[1]);
+				d4 = GetPdist(All_Query[Q].Points[i], AllGTra[A].MBR[j].U[0], AllGTra[A].MBR[j].U[1]);
+				if ((d1 < epsilon) && (d2 < epsilon)) { flag = true; continue; }
+				if ((d1 < epsilon) && (d3 < epsilon)) { flag = true; continue; }
+				if ((d2 < epsilon) && (d4 < epsilon)) { flag = true; continue; }
+				if ((d3 < epsilon) && (d4 < epsilon)) { flag = true; continue; }*/
+				if (d < epsilon) {
+					int st, en; // position of Tra
+					if (j == 0) { st = 0; }
+					else { st = AllGTra[A].position[j - 1]; }
+					en = AllGTra[A].position[j];
+					for (int k = st; k < en; k++) {
+						if (double_dist(All_Query[Q].Points[i], All_Data[A].Points[k]) < epsilon) flag = true;
+						if (flag) break;
+					}
+				}
+			}
+			if (!flag) return true; // can find any point is close to All_Query[Q].Points[i]
+		}
+		return false;
+	}
+
 	void DivideTrajectory(Trajectory& T, int TID, GroupTra& NewT) {
 		NewT.number = TID;
 		if (T.Points.size() < tau) {

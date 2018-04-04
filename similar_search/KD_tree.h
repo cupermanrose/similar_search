@@ -110,6 +110,7 @@ void Range_KDsearch(vector<KD_node>& name_KD,set<int>& answer, double Qlatitude,
 bool Range_KDsearch_forband(vector<KD_node>& name_KD, double Qlatitude, double Qlongitude, int root) {
 	Point Qpoint;
 	toRad(Qpoint, Qlatitude, Qlongitude);
+	//static vector<int> SearchQueue;
 	vector<int> SearchQueue;
 	SearchQueue.clear();
 	SearchQueue.push_back(root);
