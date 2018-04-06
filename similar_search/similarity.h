@@ -193,7 +193,9 @@ void similarity_search_mtreeBLLoose() {
 			//double bdis = DFD_LBrow(All_Query[i].Points, All_Data[MtreeBulkLoad::Candidate[j]].Points);
 			//double bdis = EP_DFD(All_Query[i].Points, All_Data[jj].Points); 
 			//if (bdis < epsilon) MtreeBulkLoad::Answer.push_back(jj);
-			if (EPplus_DFD(All_Query[i].Points, All_Data[jj].Points)) MtreeBulkLoad::Answer.push_back(jj);
+			
+			//if (EPplus_DFD(All_Query[i].Points, All_Data[jj].Points)) MtreeBulkLoad::Answer.push_back(jj);
+			if (EPplusRQ_DFD(All_Query[i].Points, All_Data[jj].Points, i, jj)) MtreeBulkLoad::Answer.push_back(jj);
 		}
 		anssum = anssum + MtreeBulkLoad::Answer.size();
 	}

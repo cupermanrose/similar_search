@@ -148,16 +148,16 @@ namespace grouping {
 		return g[(LengthA - 1) % 2][LengthB - 1];
 	}
 
-	double GetDistPM(Point& A, MBR& M) { // true: A in M
+	double GetDistPM(Point& A, MBR& M) { //  min dist
 		double res = 0;
 		for (int i = 0; i < dimension; i++) {
 			if (i == 0) {
-				if (A.latitude < M.L[0]) res = res + abs(A.latitude - M.L[0])*abs(A.latitude - M.L[0]);
-				if (A.latitude > M.U[0]) res = res + abs(A.latitude - M.U[0])*abs(A.latitude - M.U[0]);
+				if (A.latitude < M.L[0]) res = res + (M.L[0] - A.latitude)*(M.L[0] - A.latitude);
+				if (A.latitude > M.U[0]) res = res + (A.latitude - M.U[0])*(A.latitude - M.U[0]);
 			}
 			else {
-				if (A.longitude < M.L[1]) res = res + abs(A.longitude - M.L[1])*abs(A.longitude - M.L[1]);
-				if (A.longitude > M.U[1]) res = res + abs(A.longitude - M.U[1])*abs(A.longitude - M.U[1]);
+				if (A.longitude < M.L[1]) res = res + (M.L[1] - A.longitude)*(M.L[1] - A.longitude);
+				if (A.longitude > M.U[1]) res = res + (A.longitude - M.U[1])*(A.longitude - M.U[1]);
 			}
 		}
 		return sqrt(res);
@@ -170,27 +170,32 @@ namespace grouping {
 	}
 
 	bool LB_band(int Q, int A) {// true: has a LB_band; false no lower bound
+		vector<Point>& TempQ = All_Query[Q].Points;
+		GroupTra& TempGT = AllGTra[A];
 		double d1, d2, d3, d4, d;
+		int PrePos = 0; // lbband of Q_i must < lbband of Q_i+1
 		for (int i = 0; i < All_Query[Q].Points.size(); i++) {
 			bool flag = false;
-			for (int j = 0; j < AllGTra[A].length; j++) {
+			for (int j = 0; j < TempGT.length; j++) {
 				if (flag) continue;
-				d = GetDistPM(All_Query[Q].Points[i], AllGTra[A].MBR[j]);
-				/*d1 = GetPdist(All_Query[Q].Points[i], AllGTra[A].MBR[j].L[0], AllGTra[A].MBR[j].L[1]);
-				d2 = GetPdist(All_Query[Q].Points[i], AllGTra[A].MBR[j].L[0], AllGTra[A].MBR[j].U[1]);
-				d3 = GetPdist(All_Query[Q].Points[i], AllGTra[A].MBR[j].U[0], AllGTra[A].MBR[j].L[1]);
-				d4 = GetPdist(All_Query[Q].Points[i], AllGTra[A].MBR[j].U[0], AllGTra[A].MBR[j].U[1]);
+				d = GetDistPM(TempQ[i], TempGT.MBR[j]);
+				d1 = GetPdist(TempQ[i], TempGT.MBR[j].L[0], TempGT.MBR[j].L[1]);
+				d2 = GetPdist(TempQ[i], TempGT.MBR[j].L[0], TempGT.MBR[j].U[1]);
+				d3 = GetPdist(TempQ[i], TempGT.MBR[j].U[0], TempGT.MBR[j].L[1]);
+				d4 = GetPdist(TempQ[i], TempGT.MBR[j].U[0], TempGT.MBR[j].U[1]);
 				if ((d1 < epsilon) && (d2 < epsilon)) { flag = true; continue; }
 				if ((d1 < epsilon) && (d3 < epsilon)) { flag = true; continue; }
 				if ((d2 < epsilon) && (d4 < epsilon)) { flag = true; continue; }
-				if ((d3 < epsilon) && (d4 < epsilon)) { flag = true; continue; }*/
+				if ((d3 < epsilon) && (d4 < epsilon)) { flag = true; continue; }
 				if (d < epsilon) {
 					int st, en; // position of Tra
 					if (j == 0) { st = 0; }
 					else { st = AllGTra[A].position[j - 1]; }
 					en = AllGTra[A].position[j];
 					for (int k = st; k < en; k++) {
-						if (double_dist(All_Query[Q].Points[i], All_Data[A].Points[k]) < epsilon) flag = true;
+						if (k < PrePos) continue;
+						if (double_dist(TempQ[i], All_Data[A].Points[k]) < epsilon) flag = true;
+						if (flag) PrePos = k;
 						if (flag) break;
 					}
 				}
@@ -198,6 +203,33 @@ namespace grouping {
 			if (!flag) return true; // can find any point is close to All_Query[Q].Points[i]
 		}
 		return false;
+	}
+
+	void LB_bandFindAll(Point& Qi, int A, int& PrePos) {
+		GroupTra& TempGT = AllGTra[A];
+		for (int i = 0; i < TempGT.length; i++) {
+			double d = GetDistPM(Qi, TempGT.MBR[i]);
+			if (d < epsilon) {
+				int st, en; // position of Tra
+				if (i == 0) { st = 0; }
+				else { st = AllGTra[A].position[i - 1]; }
+				en = AllGTra[A].position[i];
+
+				for (int k = st; k < en; k++) {
+					if (k < PrePos) continue;
+					DisRecord[k] = bool_dist(Qi, All_Data[A].Points[k]);
+				}
+			}
+		}
+
+		for (int i = 0; i < All_Data[A].Points.size(); i++) {
+			if (DisRecord[i]) {
+				PrePos = i;
+				return;
+			}
+		}
+		
+		return;
 	}
 
 	void DivideTrajectory(Trajectory& T, int TID, GroupTra& NewT) {

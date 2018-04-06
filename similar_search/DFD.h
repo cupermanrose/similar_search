@@ -2,6 +2,7 @@
 #define _DFD_H
 #include <vector>
 #include <unordered_set>
+#include <grouping.h>
 
 using namespace std;
 
@@ -258,6 +259,60 @@ bool EPplus_DFD(vector<Point>& A, vector<Point>& B) {
 	return f[(LengthA - 1) % 2][LengthB - 1];
 }
 
+bool EPplusRQ_DFD(vector<Point>& A, vector<Point>& B,int A_num,int B_num) {// A_num and B_num is two trajectory in All_Query and All_Data
+	int LengthA = A.size();
+	int LengthB = B.size();
+
+	memset(f_col, false, sizeof(f_col));
+	memset(f_near, LengthB, sizeof(f_near));
+
+	int PrePos = 0; // lbband of Qi < lbband of Qi+1
+
+	for (int i = 0; i < LengthA; i++) {
+		int Nowi = i % 2; // reduce % times
+		int Prei = (i - 1) % 2;
+		int invalid_region = -1; // init all region is valid
+
+		//  use range query to replace distance computing
+		for (int j = 0; j < LengthB; j++) DisRecord[j] = false;
+		grouping::LB_bandFindAll(A[i], B_num, PrePos);
+
+		for (int j = 0; j < LengthB; j++) {
+			if (j <= invalid_region) { // in invalid_region
+				f[Nowi][j] = false;
+				continue;
+			}
+			//cnt++;
+			bool flag = DisRecord[j];
+			if (!flag) {
+				f[Nowi][j] = flag;
+				invalid_region = f_near[j] - 1; // update invalid_region;
+				continue;
+			}
+			if ((i == 0) && (j == 0)) { f[Nowi][j] = flag; continue; }
+			if (i == 0) { f[Nowi][j] = f[Nowi][j - 1] & flag; continue; }
+			if (j == 0) { f[Nowi][j] = f[Prei][j] & flag; continue; }
+			f[Nowi][j] = (f[Prei][j] | f[Nowi][j - 1] | f[Prei][j - 1]) & flag;
+		}
+
+		for (int j = 0; j < LengthB; j++) {
+			if (f[Nowi][j]) break;// find a 1 can't prune
+			if ((!f_col[j]) || (j == (LengthB - 1))) return false; // if exist 0-corner or 0-row
+		}
+
+		for (int j = 0; j < LengthB; j++) { // update f_col
+			f_col[j] = f_col[j] | f[Nowi][j];
+		}
+
+		int nearest = LengthB;
+		for (int j = LengthB - 1; j >= 0; j--) { //update f_near
+			if (f[Nowi][j]) nearest = j;
+			f_near[j] = nearest;
+		}
+	}
+
+	return f[(LengthA - 1) % 2][LengthB - 1];
+}
 //bool EPplus_RSeg_DFD(vector<Point>* A, vector<Point>* B, int datai, int dataj) {
 //	int LengthA = (*A).size();
 //	int LengthB = (*B).size();

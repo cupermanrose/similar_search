@@ -33,6 +33,7 @@ double lbj, ubj;
 int segLen; // update the last element that inside or outside
 int seg_num[105]; //temp array
 vector<vector<pair<int, double>>> ExactDFD;
+bool DisRecord[MaxLen]; // store distances of Q_i (DFD.h, grouping.h)
 
 string tostring(int i) {
 	string temps = to_string(i);
