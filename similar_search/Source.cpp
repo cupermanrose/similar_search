@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
 
 		init_time();
 		//epsilon = 0.001;//0.1km
-		epsilon = 0.01;//1km
+		epsilon = 0.01*0.01;//1km
 		init(argv[1]);
 		
 		fout << "query&data files= 000.." << query_number << endl;
@@ -38,21 +38,21 @@ int main(int argc, char **argv) {
 			out_time("brute force: ");
 		}*/
 
-		/*{
+		{
 			init_time();
 
 			similarity_search_baseline();
 
 			out_time("baseline: ");
-		}*/
+		}
 
-		/*{
+		{
 			init_time();
 
 			similarity_search_BLGroup();
 
 			out_time("BLGroup: ");
-		}*/
+		}
 
 		/*{
 			init_time();
@@ -63,14 +63,14 @@ int main(int argc, char **argv) {
 		{
 			init_time();
 			similarity_search_mtreeBLLoose();
-			out_time("mtreeBL: ");
+			out_time("mtreeBLLoose: ");
 		}
 
-		/*{
+		{
 			init_time();
 			similarity_search_mtreeBL();
 			out_time("mtreeBL: ");
-		}*/
+		}
 
 		/*{
 			init_time();

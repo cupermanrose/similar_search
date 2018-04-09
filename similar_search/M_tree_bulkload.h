@@ -34,12 +34,12 @@ namespace MtreeBulkLoad {
 
 
 	double GetDistance(Entry& A, Entry& B) { // distance
-		double dfd = double_DFD(All_Data[A.Tid].Points, All_Data[B.Tid].Points);
+		double dfd = sqrt(double_DFD(All_Data[A.Tid].Points, All_Data[B.Tid].Points));
 		return dfd;
 	}
 
 	double GetDisWithCenter(int CenterT, Entry& B) { // distance
-		double dfd = double_DFD(All_Data[CenterT].Points, All_Data[B.Tid].Points);
+		double dfd = sqrt(double_DFD(All_Data[CenterT].Points, All_Data[B.Tid].Points));
 		return dfd;
 	}
 
@@ -61,7 +61,7 @@ namespace MtreeBulkLoad {
 			for (int i = 0; i < CurNode.entry_num; i++) {
 				if (abs(DisPQ - CurNode.entries[i].dis_p) <= (Q.radius + CurNode.entries[i].radius)) {
 					DisNum++;
-					double DisRQ = GetDistance(Q, CurNode.entries[i]);
+					double DisRQ = sqrt(double_DFD(All_Query[Q.Tid].Points, All_Data[CurNode.entries[i].Tid].Points));
 					if (DisRQ + CurNode.entries[i].radius <= Q.radius) { // Q include CurNode.entries[i]
 						AddAllEntry(Tree[CurNode.entries[i].son_node]);
 					}
@@ -83,21 +83,21 @@ namespace MtreeBulkLoad {
 		}
 	}
 	
-	void RangeQueryLoose(Node& CurNode, Entry& Q, double LBPQ, double UBPQ) {
+	void RangeQueryLoose(Node& CurNode, Entry& Q, grouping::GroupTra& GQ, double LBPQ, double UBPQ) {
 		if (!CurNode.leaf) {
 			for (int i = 0; i < CurNode.entry_num; i++) {
 				if (((LBPQ - CurNode.entries[i].dis_p) <= (Q.radius + CurNode.entries[i].radius)) &&
 					((CurNode.entries[i].dis_p - UBPQ) <= (Q.radius + CurNode.entries[i].radius))) {
 					DisNum++;
-					double LBRQ = grouping::GlbDFD(grouping::AllGTra[Q.Tid], grouping::AllGTra[CurNode.entries[i].Tid]);
-					double UBRQ = grouping::GubDFD(grouping::AllGTra[Q.Tid], grouping::AllGTra[CurNode.entries[i].Tid]);
+					double LBRQ = sqrt(grouping::GlbDFD(GQ, grouping::AllGTra[CurNode.entries[i].Tid]));
+					double UBRQ = sqrt(grouping::GubDFD(GQ, grouping::AllGTra[CurNode.entries[i].Tid]));
 
 					if (UBRQ + CurNode.entries[i].radius <= Q.radius) { // Q include CurNode.entries[i]
 						AddAllEntry(Tree[CurNode.entries[i].son_node]);
 					}
 					else {
 						if (LBRQ <= Q.radius + CurNode.entries[i].radius) {
-							RangeQueryLoose(Tree[CurNode.entries[i].son_node], Q, LBRQ, UBRQ);
+							RangeQueryLoose(Tree[CurNode.entries[i].son_node], Q, GQ, LBRQ, UBRQ);
 						}
 					}
 				}

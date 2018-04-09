@@ -283,7 +283,11 @@ bool EPplusRQ_DFD(vector<Point>& A, vector<Point>& B,int A_num,int B_num) {// A_
 				continue;
 			}
 			//cnt++;
-			bool flag = DisRecord[j];
+			bool flag;
+			if (DisRecord[j]) flag = bool_dist(A[i], B[j]);
+			else flag = false;
+			//bool flag = DisRecord[j];
+
 			if (!flag) {
 				f[Nowi][j] = flag;
 				invalid_region = f_near[j] - 1; // update invalid_region;

@@ -34,7 +34,8 @@ bool bool_dist(Point& i, Point& j) {
 	double lat = i.latitude - j.latitude;
 	double lon = i.longitude - j.longitude;
 	double c = lat*lat + lon*lon;
-	if (sqrt(c) > epsilon) return 0;
+	//if (sqrt(c) > epsilon) return 0;
+	if (c > epsilon) return 0;
 	return 1;
 }
 
@@ -47,7 +48,8 @@ double double_dist(Point& i, Point& j) {
 	double lat = i.latitude - j.latitude;
 	double lon = i.longitude - j.longitude;
 	double c = lat*lat + lon*lon; 
-	return sqrt(c);
+	//return sqrt(c);
+	return c;
 }
 
 #endif

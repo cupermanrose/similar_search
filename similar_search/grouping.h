@@ -37,17 +37,17 @@ namespace grouping {
 		return;
 	}
 
-	void CreateMBR(MBR& MBR, int TID, int left, int right) { // create MBR from left to right-1
+	void CreateMBR(MBR& MBR, Trajectory& T, int left, int right) { // create MBR from left to right-1
 		ClearMBR(MBR);
 		for (int i = 0; i < dimension; i++) {
 			for (int j = left; j < right; j++) {
 				if (i == 0) {
-					MBR.L[0] = min(MBR.L[0], All_Data[TID].Points[j].latitude);
-					MBR.U[0] = max(MBR.U[0], All_Data[TID].Points[j].latitude);
+					MBR.L[0] = min(MBR.L[0], T.Points[j].latitude);
+					MBR.U[0] = max(MBR.U[0], T.Points[j].latitude);
 				}
 				else {
-					MBR.L[1] = min(MBR.L[1], All_Data[TID].Points[j].longitude);
-					MBR.U[1] = max(MBR.U[1], All_Data[TID].Points[j].longitude);
+					MBR.L[1] = min(MBR.L[1], T.Points[j].longitude);
+					MBR.U[1] = max(MBR.U[1], T.Points[j].longitude);
 				}
 			}
 		}
@@ -62,7 +62,8 @@ namespace grouping {
 			dis1 = max(dis1, dis2);
 			res = res + dis1*dis1;
 		}
-		return sqrt(res);
+		//return sqrt(res);
+		return res;
 	}
 
 	double LDis(MBR& M1, MBR& M2) {
@@ -79,7 +80,8 @@ namespace grouping {
 			dis1 = min(dis1, dis2);
 			res = res + dis1*dis1;
 		}
-		return sqrt(res);
+		//return sqrt(res);
+		return res;
 	}
 	
 	double GlbDFD(GroupTra& A, GroupTra& B) { //	standard DFD lb
@@ -160,7 +162,8 @@ namespace grouping {
 				if (A.longitude > M.U[1]) res = res + (A.longitude - M.U[1])*(A.longitude - M.U[1]);
 			}
 		}
-		return sqrt(res);
+		//return sqrt(res);
+		return res;
 	}
 
 	double GetPdist(Point&A, double lat, double lon) {
@@ -209,25 +212,32 @@ namespace grouping {
 		GroupTra& TempGT = AllGTra[A];
 		for (int i = 0; i < TempGT.length; i++) {
 			double d = GetDistPM(Qi, TempGT.MBR[i]);
-			if (d < epsilon) {
-				int st, en; // position of Tra
-				if (i == 0) { st = 0; }
-				else { st = AllGTra[A].position[i - 1]; }
-				en = AllGTra[A].position[i];
+			int st, en; // position of Tra
+			if (i == 0) { st = 0; }
+			else { st = AllGTra[A].position[i - 1]; }
+			en = AllGTra[A].position[i];
 
-				for (int k = st; k < en; k++) {
-					if (k < PrePos) continue;
-					DisRecord[k] = bool_dist(Qi, All_Data[A].Points[k]);
-				}
+			if (d < epsilon) {
+				//int st, en; // position of Tra
+				//if (i == 0) { st = 0; }
+				//else { st = AllGTra[A].position[i - 1]; }
+				//en = AllGTra[A].position[i];
+
+				//for (int k = st; k < en; k++) {
+				//	if (k < PrePos) continue;
+				//	DisRecord[k] = bool_dist(Qi, All_Data[A].Points[k]);
+				//}
+				for (int k = st; k < en; k++) DisRecord[k] = true;
 			}
+			else for (int k = st; k < en; k++) DisRecord[k] = false;
 		}
 
-		for (int i = 0; i < All_Data[A].Points.size(); i++) {
+		/*for (int i = 0; i < All_Data[A].Points.size(); i++) {
 			if (DisRecord[i]) {
 				PrePos = i;
 				return;
 			}
-		}
+		}*/
 		
 		return;
 	}
@@ -237,7 +247,7 @@ namespace grouping {
 		if (T.Points.size() < tau) {
 			NewT.length = 1;
 			NewT.position[0] = T.Points.size();
-			CreateMBR(NewT.MBR[0], NewT.number, 0, NewT.position[0]);
+			CreateMBR(NewT.MBR[0], T, 0, NewT.position[0]);
 			return;
 		}
 
@@ -250,7 +260,7 @@ namespace grouping {
 			else right = left + unit;
 			NewT.position[i] = right;
 			//cout << left << ' ' << right << ' ' << T.Points.size() << endl;
-			CreateMBR(NewT.MBR[i], NewT.number, left, right);
+			CreateMBR(NewT.MBR[i], T, left, right);
 		}
 		return;
 	}
