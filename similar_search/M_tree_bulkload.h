@@ -34,12 +34,14 @@ namespace MtreeBulkLoad {
 
 
 	double GetDistance(Entry& A, Entry& B) { // distance
-		double dfd = sqrt(double_DFD(All_Data[A.Tid].Points, All_Data[B.Tid].Points));
+		//double dfd = sqrt(double_DFD(All_Data[A.Tid].Points, All_Data[B.Tid].Points));
+		double dfd = sqrt(grouping::GubDFD(grouping::AllGTra[A.Tid], grouping::AllGTra[B.Tid]));
 		return dfd;
 	}
 
 	double GetDisWithCenter(int CenterT, Entry& B) { // distance
-		double dfd = sqrt(double_DFD(All_Data[CenterT].Points, All_Data[B.Tid].Points));
+		//double dfd = sqrt(double_DFD(All_Data[CenterT].Points, All_Data[B.Tid].Points));
+		double dfd= sqrt(grouping::GubDFD(grouping::AllGTra[CenterT], grouping::AllGTra[B.Tid]));
 		return dfd;
 	}
 

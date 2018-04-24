@@ -8,6 +8,7 @@ using namespace std;
 
 bool f[2][MaxLen];
 double g[2][MaxLen];
+int gInt[2][MaxLen];
 bool f_col[MaxLen];	// f_col[i]=false if this column is all 0;
 int f_near[MaxLen]; // the nearest 1 on the right;
 
@@ -118,6 +119,21 @@ bool LB_band(int Q, int A) { // true: has a LB_band; false no lower bound
 //
 //	return f[(LengthA - 1) % 2][LengthB - 1];
 //}
+
+int Int_DFD(vector<IntPoint>& A, vector<IntPoint>& B) { //	standard DFD
+	int LengthA = A.size();
+	int LengthB = B.size();
+	for (int i = 0; i < LengthA; i++) {
+		for (int j = 0; j < LengthB; j++) {
+			int distemp = Int_dist(A[i], B[j]);
+			if ((i == 0) && (j == 0)) { gInt[i % 2][j] = distemp; continue; }
+			if (i == 0) { gInt[i % 2][j] = max(gInt[i % 2][j - 1], distemp); continue; }
+			if (j == 0) { gInt[i % 2][j] = max(gInt[(i - 1) % 2][j], distemp); continue; }
+			gInt[i % 2][j] = max(min(min(gInt[(i - 1) % 2][j], gInt[i % 2][j - 1]), gInt[(i - 1) % 2][j - 1]), distemp);
+		}
+	}
+	return gInt[(LengthA - 1) % 2][LengthB - 1];
+}
 
 double double_DFD(vector<Point>& A, vector<Point>& B) { //	standard DFD
 	int LengthA = A.size();

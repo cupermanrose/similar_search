@@ -25,34 +25,70 @@ int main(int argc, char **argv) {
 		init(argv[1]);
 		
 		fout << "query&data files= 000.." << query_number << endl;
-		fout << "TestNumber= " << All_Query.size() << endl;
+		fout << "TestNumber= " << All_Data.size() << endl;
 		fout << "epsilon= " << epsilon << endl;
 		//init_KD();
 		out_time("Init ");
 
-		/*{
+		{
 			init_time();
 
 			similarity_search();
 
 			out_time("brute force: ");
-		}*/
+		}
 
 		{
+			Int_Data.clear();
+			Int_Query.clear();
+			IntTrajectory TempTra;
+			IntPoint TempP;
+			for (int i = 0; i < All_Data.size(); i++) {
+				TempTra.Points.clear();
+				for (int j = 0; j < All_Data[i].Points.size(); j++) {
+					int Templat = int(All_Data[i].Points[j].latitude * 1000);
+					int Templon = int(All_Data[i].Points[j].longitude * 1000);
+					TempP.latitude = Templat;
+					TempP.longitude = Templon;
+					TempTra.Points.push_back(TempP);
+				}
+				Int_Data.push_back(TempTra);
+			}
+
+			for (int i = 0; i < All_Query.size(); i++) {
+				TempTra.Points.clear();
+				for (int j = 0; j < All_Query[i].Points.size(); j++) {
+					int Templat = int(All_Query[i].Points[j].latitude * 1000);
+					int Templon = int(All_Query[i].Points[j].longitude * 1000);
+					TempP.latitude = Templat;
+					TempP.longitude = Templon;
+					TempTra.Points.push_back(TempP);
+				}
+				Int_Query.push_back(TempTra);
+			}
+
+			init_time();
+
+			similarity_search_INT();
+
+			out_time("brute forceINT: ");
+		}
+
+		/*{
 			init_time();
 
 			similarity_search_baseline();
 
 			out_time("baseline: ");
-		}
+		}*/
 
-		{
+		/*{
 			init_time();
 
 			similarity_search_BLGroup();
 
 			out_time("BLGroup: ");
-		}
+		}*/
 
 		/*{
 			init_time();
@@ -60,17 +96,17 @@ int main(int argc, char **argv) {
 			out_time("mtree: ");
 		}*/
 
-		{
+		/*{
 			init_time();
 			similarity_search_mtreeBLLoose();
 			out_time("mtreeBLLoose: ");
-		}
+		}*/
 
-		{
+		/*{
 			init_time();
 			similarity_search_mtreeBL();
 			out_time("mtreeBL: ");
-		}
+		}*/
 
 		/*{
 			init_time();

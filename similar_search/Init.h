@@ -6,7 +6,8 @@ using namespace std;
 const int MaxLen = 100000;
 const int data_number = 181;
 const int query_number = 181;
-const int TestNumber = 100+100; // datasize:1000 querysize:100
+const int TestNumber = 10000+100; // datasize: 10000 querysize:100
+const int DataSize = 1000;
 const bool addpoints = false;
 fstream fout("G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\test.txt", ios::out);
 
@@ -15,6 +16,13 @@ struct Trajectory {
 	int number;
 	string filename;
 };
+
+struct IntTrajectory {
+	vector<IntPoint> Points;
+};
+
+vector<IntTrajectory> Int_Data;
+vector<IntTrajectory> Int_Query;
 
 vector<Trajectory> All_Data;
 vector<Trajectory> All_Query;
@@ -213,18 +221,20 @@ void init(string preffix) {
 	//}
 
 	// random choose 100 query in All_Query
-	
 	All_Data.clear();
 	All_Query.clear();
 	for (int i = 0; i < TestNumber; i++) {
-		if (i % (TestNumber / 100) == 0) {
+		if ((i % 100 == 0) && (All_Query.size() < 100)) {
 			All_Query.push_back(TempSet[i]);
 		}
 		else {
+			if (All_Data.size() == DataSize) continue;
 			All_Data.push_back(TempSet[i]);
 		}
 	}
 
+	cout << All_Data.size() << endl;
+	cout << All_Query.size() << endl;
 	//{//read exact dfd value
 	//	fstream fin("G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\exact_DFD.txt", ios::in);
 	//	//fstream fin("G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\Exact_1000_50.txt", ios::in);

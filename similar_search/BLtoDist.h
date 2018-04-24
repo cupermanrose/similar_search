@@ -8,6 +8,19 @@
 const double eps = 1.0E-15;
 double epsilon;
 
+struct IntPoint {
+	int latitude, longitude;
+};
+
+int Int_dist(IntPoint& i, IntPoint& j) {
+
+	int lat = i.latitude - j.latitude;
+	int lon = i.longitude - j.longitude;
+	int c = lat*lat + lon*lon;
+	//return sqrt(c);
+	return c;
+}
+
 struct Point { 
 	double x, y, z;
 	double latitude, longitude;

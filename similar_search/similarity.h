@@ -15,18 +15,31 @@ set<int> Start_set, End_set, Intersect_set;
 double lower[20000], upper[20000];
 vector<int> answer;
 
-//void similarity_search() {
-//	int anssum = 0;
-//	for (int i = 0; i < All_Query.size(); i++) {
-//		answer.clear();
-//		for (int j = 0; j < All_Data.size(); j++) {
-//			double bdis = double_DFD(All_Query[i].Points, All_Data[j].Points);
-//			if (bdis < epsilon) answer.push_back(j);
-//		}
-//		anssum = anssum + answer.size();
-//	}
-//	fout << "Brute force answer: " << anssum << endl;
-//}
+void similarity_search_INT() {
+	int anssum = 0;
+	for (int i = 0; i < Int_Query.size(); i++) {
+		answer.clear();
+		for (int j = 0; j < Int_Data.size(); j++) {
+			int bdis = Int_DFD(Int_Query[i].Points, Int_Data[j].Points);
+			if (bdis < epsilon) answer.push_back(j);
+		}
+		anssum = anssum + answer.size();
+	}
+	fout << "Brute forceInt answer: " << anssum << endl;
+}
+
+void similarity_search() {
+	int anssum = 0;
+	for (int i = 0; i < All_Query.size(); i++) {
+		answer.clear();
+		for (int j = 0; j < All_Data.size(); j++) {
+			double bdis = double_DFD(All_Query[i].Points, All_Data[j].Points);
+			if (bdis < epsilon) answer.push_back(j);
+		}
+		anssum = anssum + answer.size();
+	}
+	fout << "Brute force answer: " << anssum << endl;
+}
 
 void similarity_search_baseline() {
 	int anssum = 0, lbcell = 0;
@@ -53,7 +66,7 @@ void similarity_search_BLGroup() {
 	init_time();
 	grouping::Init();
 	out_time("grouping Init: ");
-	int anssum = 0, lbcell = 0, Grouplb = 0, Groupub = 0;
+	int anssum = 0, lbcell = 0, Grouplb = 0, Groupub = 0; 
 	for (int i = 0; i < All_Query.size(); i++) {
 		answer.clear();
 		for (int j = 0; j < All_Data.size(); j++) {
@@ -87,11 +100,11 @@ void similarity_search_BLGroup() {
 
 void similarity_search_mtreeBL() {
 
-	string filename = "G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\MTreeBulkLoad_" + to_string(TestNumber) + "_" + to_string(MtreeBulkLoad::Capacity) + ".txt";
-	init_time();
+	string filename = "G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\MTreeBulkLoad_" + to_string(All_Data.size()) + "_" + to_string(MtreeBulkLoad::Capacity) + ".txt";
+	/*init_time();
 	MtreeBulkLoad::Build(filename.c_str(), All_Data.size());
 	out_time("MtreeBulkLoad building: ");
-	init_time();
+	init_time();*/
 	MtreeBulkLoad::ReadFromDisk(filename.c_str());
 
 	/*int res = 0;
@@ -138,11 +151,12 @@ void similarity_search_mtreeBLLoose() {
 	out_time("grouping Init: ");
 	init_time();
 
-	string filename = "G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\MTreeBulkLoad_" + to_string(TestNumber) + "_" + to_string(MtreeBulkLoad::Capacity) + ".txt";
+	string filename = "G:\\work\\DFD_convoy\\experimence_results\\similarity_search\\Geolife\\MTreeBulkLoad_LooseBuild" + to_string(All_Data.size()) + "_" + to_string(MtreeBulkLoad::Capacity) + ".txt";
 	init_time();
 	MtreeBulkLoad::Build(filename.c_str(), All_Data.size());
 	out_time("MtreeBulkLoad building: ");
 	init_time();
+	//return;
 	MtreeBulkLoad::ReadFromDisk(filename.c_str());
 
 	int anssum = 0, lbcell = 0, ubmtree = 0, lbmtree = 0, lbband = 0, ubgreedy = 0, Grouplb = 0, Groupub = 0;
@@ -159,6 +173,9 @@ void similarity_search_mtreeBLLoose() {
 		MtreeBulkLoad::RangeQueryLoose(MtreeBulkLoad::Tree[MtreeBulkLoad::root], Q, TempGQ, -INFINITY, INFINITY);
 		ubmtree = ubmtree + MtreeBulkLoad::Candidate.size() + MtreeBulkLoad::Answer.size();
 		lbmtree = lbmtree + MtreeBulkLoad::Candidate.size();
+		/*for (int j = 0; j < All_Data.size(); j++) {
+			MtreeBulkLoad::Candidate.push_back(j);
+		}*/
 
 		for (int j = 0; j < MtreeBulkLoad::Candidate.size(); j++) {
 
