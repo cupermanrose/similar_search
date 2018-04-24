@@ -12,7 +12,7 @@ struct IntPoint {
 	int latitude, longitude;
 };
 
-int Int_dist(IntPoint& i, IntPoint& j) {
+inline int Int_dist(IntPoint& i, IntPoint& j) {
 
 	int lat = i.latitude - j.latitude;
 	int lon = i.longitude - j.longitude;
@@ -21,6 +21,21 @@ int Int_dist(IntPoint& i, IntPoint& j) {
 	return c;
 }
 
+bool bool_Intdist(IntPoint& i, IntPoint& j) {
+	//double c = (*i).x * (*j).x + (*i).y * (*j).y + (*i).z * (*j).z;
+	//if (c > 1.0) c = c - eps;
+	//if (c < -1.0) c = c + eps;
+	//double a = acos(c);
+	////return a*R; //km
+	//if ((a*R) > epsilon) return 0;
+	//return 1;
+	double lat = i.latitude - j.latitude;
+	double lon = i.longitude - j.longitude;
+	double c = lat*lat + lon*lon;
+	//if (sqrt(c) > epsilon) return 0;
+	if (c > epsilon) return 0;
+	return 1;
+}
 struct Point { 
 	double x, y, z;
 	double latitude, longitude;
@@ -52,7 +67,7 @@ bool bool_dist(Point& i, Point& j) {
 	return 1;
 }
 
-double double_dist(Point& i, Point& j) {
+inline double double_dist(Point& i, Point& j) {
 	//double c = i.x*j.x + i.y*j.y + i.z*j.z;
 	//if (c > 1.0) c = c - eps;
 	//if (c < -1.0)c = c + eps;

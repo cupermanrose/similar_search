@@ -17,6 +17,11 @@
 
 using namespace std;
 
+
+int A1[1000000], A2[1000000], A3[1000000];
+double B1[1000000], B2[1000000], B3[1000000];
+
+
 int main(int argc, char **argv) {
 
 		init_time();
@@ -29,6 +34,46 @@ int main(int argc, char **argv) {
 		fout << "epsilon= " << epsilon << endl;
 		//init_KD();
 		out_time("Init ");
+
+		/*{
+			srand(time(NULL));
+			int a = rand() % 10000;
+			int b = rand() % 10000;
+			
+			for (int i = 0; i < 1000000; i++) {
+				int a = rand() % 10000;
+				int b = rand() % 10000;
+				A1[i] = a; A2[i] = b;
+				b = rand() % 10000+1;
+				B1[i] =(double) a / b;
+				b = rand() % 10000 + 1;
+				B2[i] = (double) a / b;
+			}
+
+			init_time();
+
+			long long res = 0;
+
+			for (int i = 0; i < 100; i++) {
+				for (int j = 0; j < 1000000; j++) {
+					A3[j] = (A1[j] - A2[j])*(A1[j] - A2[j]);
+				}
+				for (int j = 0; j < 1000000; j++) res = res + A3[j];
+			}
+			cout << res << endl;
+			out_time("Int: ");
+
+			init_time();
+			double resd = 0;
+			for (int i = 0; i < 100; i++) {
+				for (int j = 0; j < 1000000; j++) {
+					B3[j] = (B1[j] - B2[j])*(B1[j] - B2[j]);
+				}
+				for (int j = 0; j < 1000000; j++) resd = resd + B3[j];
+			}
+			cout << resd << endl;
+			out_time("double: ");
+		}*/
 
 		{
 			init_time();
@@ -167,5 +212,5 @@ int main(int argc, char **argv) {
 	}*/	
 
 	cout << "finish" << endl;
-	system("pause");
+	//system("pause");
 }

@@ -102,13 +102,13 @@ bool LB_band(int Q, int A) { // true: has a LB_band; false no lower bound
 //	return 0;
 //}
 
-//bool DFD(vector<Point>* A, vector<Point>* B) { // standard DFD with bool
-//	int LengthA = (*A).size();
-//	int LengthB = (*B).size();
+//bool bool_DFD(vector<Point>& A, vector<Point>& B) { // standard DFD with bool
+//	int LengthA = A.size();
+//	int LengthB = B.size();
 //
 //	for (int i = 0; i < LengthA; i++) {
 //		for (int j = 0; j < LengthB; j++) {
-//			bool flag = bool_dist(&((*A)[i]), &((*B)[j]));
+//			bool flag = bool_dist(A[i], B[j]);
 //			if (!flag) { f[i % 2][j] = flag; continue; }
 //			if ((i == 0) && (j == 0)) { f[i % 2][j] = flag; continue; }
 //			if (i == 0) { f[i % 2][j] = f[i % 2][j - 1] & flag; continue; }
@@ -126,10 +126,36 @@ int Int_DFD(vector<IntPoint>& A, vector<IntPoint>& B) { //	standard DFD
 	for (int i = 0; i < LengthA; i++) {
 		for (int j = 0; j < LengthB; j++) {
 			int distemp = Int_dist(A[i], B[j]);
-			if ((i == 0) && (j == 0)) { gInt[i % 2][j] = distemp; continue; }
+			int *gTemp1 = gInt[i % 2];
+			int *gTemp2 = gInt[(i - 1) % 2];
+			/*if (i == 0) {
+				if (j == 0) {
+					gTemp1[j] = distemp;
+				}
+				else gTemp1[j] = max(gTemp1[j - 1], distemp);
+			}
+			else if (j == 0) {
+				gTemp1[j] = max(gTemp2[j], distemp);
+			}
+			else gTemp1[j] = max(min(min(gTemp2[j], gTemp1[j - 1]), gTemp2[j - 1]), distemp);*/
+			if (i != 0) {
+				if (j != 0) {
+					gTemp1[j] = max(min(min(gTemp2[j], gTemp1[j - 1]), gTemp2[j - 1]), distemp);
+				}
+				else gTemp1[j] = max(gTemp2[j], distemp);
+			}
+			else if (j != 0) {
+				gTemp1[j] = max(gTemp1[j - 1], distemp);
+			}
+			else gTemp1[j] = distemp;
+			/*if ((i == 0) && (j == 0)) { gTemp1[j] = distemp; continue; }
+			if (i == 0) { gTemp1[j] = max(gTemp1[j - 1], distemp); continue; }
+			if (j == 0) { gTemp1[j] = max(gTemp2[j], distemp); continue; }
+			gTemp1[j] = max(min(min(gTemp2[j], gTemp1[j - 1]), gTemp2[j - 1]), distemp);*/
+			/*if ((i == 0) && (j == 0)) { gInt[i % 2][j] = distemp; continue; }
 			if (i == 0) { gInt[i % 2][j] = max(gInt[i % 2][j - 1], distemp); continue; }
 			if (j == 0) { gInt[i % 2][j] = max(gInt[(i - 1) % 2][j], distemp); continue; }
-			gInt[i % 2][j] = max(min(min(gInt[(i - 1) % 2][j], gInt[i % 2][j - 1]), gInt[(i - 1) % 2][j - 1]), distemp);
+			gInt[i % 2][j] = max(min(min(gInt[(i - 1) % 2][j], gInt[i % 2][j - 1]), gInt[(i - 1) % 2][j - 1]), distemp);*/
 		}
 	}
 	return gInt[(LengthA - 1) % 2][LengthB - 1];
@@ -141,10 +167,36 @@ double double_DFD(vector<Point>& A, vector<Point>& B) { //	standard DFD
 	for (int i = 0; i < LengthA; i++) {
 		for (int j = 0; j < LengthB; j++) {
 			double distemp = double_dist(A[i], B[j]);
-			if ((i == 0) && (j == 0)) { g[i % 2][j] = distemp; continue; }
+			double *gTemp1 = g[i % 2];
+			double *gTemp2 = g[(i - 1) % 2];
+			/*if (i == 0) {
+				if (j == 0) {
+					gTemp1[j] = distemp;
+				}
+				else gTemp1[j] = max(gTemp1[j - 1], distemp);
+			}
+			else if (j == 0) {
+				gTemp1[j] = max(gTemp2[j], distemp);
+			}
+			else gTemp1[j] = max(min(min(gTemp2[j], gTemp1[j - 1]), gTemp2[j - 1]), distemp);*/
+			if (i != 0) {
+				if (j != 0) {
+					gTemp1[j] = max(min(min(gTemp2[j], gTemp1[j - 1]), gTemp2[j - 1]), distemp);
+				}
+				else gTemp1[j] = max(gTemp2[j], distemp);
+			}
+			else if (j != 0) {
+				gTemp1[j] = max(gTemp1[j - 1], distemp);
+			}
+			else gTemp1[j] = distemp;
+			/*if ((i == 0) && (j == 0)) { gTemp1[j] = distemp; continue; }
+			if (i == 0) { gTemp1[j] = max(gTemp1[j - 1], distemp); continue; }
+			if (j == 0) { gTemp1[j] = max(gTemp2[j], distemp); continue; }
+			gTemp1[j] = max(min(min(gTemp2[j], gTemp1[j - 1]), gTemp2[j - 1]), distemp);*/
+			/*if ((i == 0) && (j == 0)) { g[i % 2][j] = distemp; continue; }
 			if (i == 0) { g[i % 2][j] = max(g[i % 2][j - 1], distemp); continue; }
 			if (j == 0) { g[i % 2][j] = max(g[(i - 1) % 2][j], distemp); continue; }
-			g[i % 2][j] = max(min(min(g[(i - 1) % 2][j], g[i % 2][j - 1]), g[(i - 1) % 2][j - 1]), distemp);
+			g[i % 2][j] = max(min(min(g[(i - 1) % 2][j], g[i % 2][j - 1]), g[(i - 1) % 2][j - 1]), distemp);*/
 		}
 	}
 	return g[(LengthA - 1) % 2][LengthB - 1];

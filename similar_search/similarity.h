@@ -18,6 +18,7 @@ vector<int> answer;
 void similarity_search_INT() {
 	int anssum = 0;
 	for (int i = 0; i < Int_Query.size(); i++) {
+		if (i == 10) break;
 		answer.clear();
 		for (int j = 0; j < Int_Data.size(); j++) {
 			int bdis = Int_DFD(Int_Query[i].Points, Int_Data[j].Points);
@@ -31,6 +32,7 @@ void similarity_search_INT() {
 void similarity_search() {
 	int anssum = 0;
 	for (int i = 0; i < All_Query.size(); i++) {
+		if (i == 10) break;
 		answer.clear();
 		for (int j = 0; j < All_Data.size(); j++) {
 			double bdis = double_DFD(All_Query[i].Points, All_Data[j].Points);
